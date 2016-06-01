@@ -13,8 +13,7 @@ docker build -t my/ovpn .
 You have to run the openvpn's container in `privileged` with `host network` mode.
 
 ```
-docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn sonrisa/open
-vpn /opt/start.sh
+docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn my/ovpn /opt/start.sh
 ```
 
   - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
