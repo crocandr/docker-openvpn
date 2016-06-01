@@ -51,7 +51,7 @@ sed -i '/<cert>/r '"$KeysBaseDir/$keyname.crt"'' $ClientConf
 sed -i '/<key>/r '"$KeysBaseDir/$keyname.key"'' $ClientConf
 
 GenDate=$( date +"%Y%m%d %T" )
-echo "Generated: $GenDate" >> $KeysBaseDir/$keyname-conf.ovpn
+echo -e "\n\n# Generated: $GenDate" >> $KeysBaseDir/$keyname-conf.ovpn
 
 
 # MSG
