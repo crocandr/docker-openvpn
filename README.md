@@ -10,11 +10,15 @@ docker build -t my/ovpn .
 
 ## Run
 
+You have to run the openvpn's container in `privileged` with `host network` mode.
+
 ```
-docker run -tid --privileged --name=openvpn -p 1194:1194/udp -p 1194:1194/tcp -v /srv/ovpn/config:/etc/openvpn my/ovpn /opt/start.sh
+docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn sonrisa/open
+vpn /opt/start.sh
 ```
 
-The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
+  - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
+  - You can use the docker host's iptables (too) with `--net=host`
 
 
 After first run you got many config files in the `/srv/ovpn/config` and `/srv/ovpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
@@ -22,6 +26,28 @@ After first run you got many config files in the `/srv/ovpn/config` and `/srv/ov
   - server.conf
   - client.conf
   - vars
+
+## Host config
+
+The ip forward is enabled in docker by default. But please check it and enable if nessesarry.
+
+```
+cat /proc/sys/net/ipv4/ip_forward
+1
+```
+
+If the `ip_forward` is not `1`, please enable with this command (example):
+
+```
+echo 1 > /proc/sys/net/ipv4/ip_forward
+```
+
+You have to enable NAT rule on the docker's host for VPN's network.  
+The VPN network is `10.8.0.0/24` by default.
+
+```
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
+```
 
 ## Generate client cert
 
