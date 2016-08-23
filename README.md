@@ -5,7 +5,7 @@
 Please configure your vpn key data (company, domain, email, etc...) in the `files/openvpn-vars` file before you run the build.
 
 ```
-docker build -t my/ovpn .
+docker build -t croc/openvpn .
 ```
 
 ## Run
@@ -13,7 +13,7 @@ docker build -t my/ovpn .
 You have to run the openvpn's container in `privileged` with `host network` mode.
 
 ```
-docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn my/ovpn /opt/start.sh
+docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn croc/openvpn /opt/start.sh
 ```
 
   - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
@@ -60,12 +60,30 @@ docker exec -ti openvpn /bin/bash
 exit
 ```
 
-...**or** simple exec the generate script:
-
-```
-docker exec -ti openvpn /opt/generate-newclient-cert.sh user1
-```
-
 This cert generator script uses the `client.conf` file as a template, and integrate the generated cert files into the client config file. So you can use only one file for the openvpn. Only the opvn config file. (example: user1-conf.ovpn ).  
 You can access the generated config (and cert files too) in the `/srv/ovpn/config/easy-rsa/keys/` folder on your Docker host.
 
+## Revoke a client cert
+
+You can revoke a client cert with a simple script.
+
+```
+docker exec -ti openvpn /bin/bash
+./revoke-client-cert.sh user1 
+exit
+```
+
+or you can remove the client cert with the full path of the key file too
+
+```
+docker exec -ti openvpn /bin/bash
+./revoke-client-cert.sh /etc/openvpn/easy-rsa/keys/user1.crt
+exit
+```
+
+This is your choice :)
+
+
+
+
+Good Luck!
