@@ -1,12 +1,26 @@
 #!/bin/bash
 
 # --- VARS ---
-ServerAddress="vpn.mycompany.com"
+DefaultServerAddress="vpn.mycompany.com"
 EasyRSADir="/etc/openvpn/easy-rsa"
 KeysBaseDir="$EasyRSADir/keys"
 
 ClientConfTemplate="$EasyRSADir/templates/client.conf"
 ServerCAFile="/etc/openvpn/ca.crt"
+
+# if ServerAddress is not defined as sys Environment variable
+if [ -z $ServerAddress ]
+then
+  # find public IP address
+  PUBIP="$( curl -L -k http://ifconfig.co )"
+  if [ ! -z "$PUBIP" ]
+  then
+    ServerAddress="$PUBIP"
+  else
+    # PUBIP not exists - use DefaultServerAddress
+    ServerAddress="$DefaultServerAddress"
+  fi
+fi
 
 
 # --- SCRIPT ---

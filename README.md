@@ -18,7 +18,7 @@ docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/
 
   - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
-
+  - The container find the public IP address automatically, but You can define a custom IP/hostname for `remote` server address for the clients with the `-e ServerAddress=myserver.mynet.com` parameter. This remote addess use by the client config.
 
 After first run you got many config files in the `/srv/ovpn/config` and `/srv/ovpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
 
@@ -27,6 +27,12 @@ After first run you got many config files in the `/srv/ovpn/config` and `/srv/ov
   - vars
 
 ## Host config
+
+You have to load tun modul into the host kernel if not loaded by default:
+
+```
+modprobe tun
+```
 
 The ip forward is enabled in docker by default. But please check it and enable if nessesarry.
 
@@ -46,6 +52,27 @@ The VPN network is `10.8.0.0/24` by default.
 
 ```
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
+```
+
+## OpenVPN config
+
+You have to modify default config for your network in the openvpn's config file on your Docker host.
+You have to add routes, etc... Example:
+
+`/srv/ovpn/config/server.conf`:
+
+```
+...
+push "route 192.168.0.0 255.255.255.0"
+push "route 172.0.1.0 255.255.255.0"
+;push "route 192.168.10.0 255.255.255.0"
+...
+```
+
+If you modified the server.conf file, please restart the openvpn container:
+
+```
+docker restart openvpn
 ```
 
 ## Generate client cert
