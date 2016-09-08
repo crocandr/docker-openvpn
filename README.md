@@ -110,6 +110,17 @@ exit
 
 This is your choice :)
 
+## Old client certificates
+
+You can list old client keys with a simple script.
+
+```
+docker exec -ti openvpn /opt/list-old-keys.sh
+```
+
+If the client cert's last day is coming, You should generate a new client key/cert/config for the client.
+
+
 
 
 
