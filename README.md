@@ -7,26 +7,9 @@ Please configure your vpn key data (company, domain, email, etc...) in the `file
 ```
 docker build -t croc/openvpn .
 ```
-
-## Run
-
-You have to run the openvpn's container in `privileged` with `host network` mode.
-
-```
-docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn croc/openvpn /opt/start.sh
-```
-
-  - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
-  - You can use the docker host's iptables (too) with `--net=host`
-  - The container find the public IP address automatically, but You can define a custom IP/hostname for `remote` server address for the clients with the `-e ServerAddress=myserver.mynet.com` parameter. This remote addess use by the client config.
-
-After first run you got many config files in the `/srv/ovpn/config` and `/srv/ovpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
-
-  - server.conf
-  - client.conf
-  - vars
-
 ## Host config
+
+Enable UDP 1194 port for OpenVPN.
 
 You have to load tun modul into the host kernel if not loaded by default:
 
@@ -47,19 +30,38 @@ If the `ip_forward` is not `1`, please enable with this command (example):
 echo 1 > /proc/sys/net/ipv4/ip_forward
 ```
 
-You have to enable NAT rule on the docker's host for VPN's network.  
+You **have to** enable NAT rule on the docker's host for VPN's network.  
 The VPN network is `10.8.0.0/24` by default.
 
 ```
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 ```
 
+## Run
+
+You have to run the openvpn's container in `privileged` with `host network` mode.
+
+```
+docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/openvpn croc/openvpn /opt/start.sh
+```
+
+  - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
+  - You can use the docker host's iptables (too) with `--net=host`
+  - The container find the public IP address automatically, but You can define a custom IP/hostname for `remote` server address for the clients with the `-e ServerAddress=myserver.mynet.com` parameter. This remote addess use by the client config.
+
+After first run you got many config files in the `/srv/ovpn/config` and `/srv/ovpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
+
+  - server.conf
+  - client.conf
+  - vars
+
+
 ## OpenVPN config
 
-You have to modify default config for your network in the openvpn's config file on your Docker host.
+You have to **modify** default config for your network in the openvpn's config file on your Docker host.
 You have to add routes, etc... Example:
 
-`/srv/ovpn/config/server.conf`:
+`nano /srv/ovpn/config/server.conf`:
 
 ```
 ...
@@ -89,6 +91,16 @@ exit
 
 This cert generator script uses the `client.conf` file as a template, and integrate the generated cert files into the client config file. So you can use only one file for the openvpn. Only the opvn config file. (example: user1-conf.ovpn ).  
 You can access the generated config (and cert files too) in the `/srv/ovpn/config/easy-rsa/keys/` folder on your Docker host.
+
+Optional:
+You can copy the keys to a readable directory:
+```
+cp /srv/ovpn/config/easy-rsa/keys/*.ovpn /tmp
+```
+Notes: You must copy these files if you are in AWS environment because the *keys* folder is not readable by ubuntu user. After the copy, you can download with scp command: 
+```
+scp -i key.pem ubuntu@public_ip:/tmp/*.ovpn .
+```
 
 ## Revoke a client cert
 
