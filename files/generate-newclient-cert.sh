@@ -12,7 +12,11 @@ ServerCAFile="/etc/openvpn/ca.crt"
 if [ -z $ServerAddress ]
 then
   # find public IP address
-  PUBIP="$( curl -L -k http://ifconfig.co )"
+  PUBIP=$( curl -L -k http://ifconfig.co || exit 1 )
+  # failsafe PUBIP
+  [ $PUBIP ] || PUBIP=$( curl -L -k http://icanhazip.com || exit 1 )
+  [ $PUBIP ] || PUBIP=$( curl -L -k http://ident.me || exit 1 )
+  [ $PUBIP ] || PUBIP=$( curl -L -k http://eth0.me || exit 1 )
   if [ ! -z "$PUBIP" ]
   then
     ServerAddress="$PUBIP"
