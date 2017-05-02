@@ -127,6 +127,11 @@ You have to enable the revoked cert checking mechanism in your `server.conf` fil
 crl-verify crl.pem
 ```
 
+**Good to know**:
+
+If you enable this option, you have to generate and revoke a cert (example: test or anything).
+Because the clients can't connect if you don't have a valid `crl.pem` file. Empty crl.pem is not valid crl.pem file. (This is an OpenVPN bug?)
+
 ## Old client certificates
 
 You can list old client keys with a simple script.
