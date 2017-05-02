@@ -44,10 +44,15 @@ then
   ../pkitool --server vpnserver
 fi
 
+echo "Checking revoke list..."
+[ -e /etc/openvpn/easy-rsa/keys/crl.pem ] || touch /etc/openvpn/easy-rsa/keys/crl.pem
+
 echo "Symlinking configs ..."
 ln -f -s /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
+ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
+
 
 # Start Openvpn
 cd /etc/openvpn && openvpn --config server.conf

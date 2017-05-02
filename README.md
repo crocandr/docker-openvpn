@@ -106,21 +106,31 @@ scp -i key.pem ubuntu@public_ip:/tmp/*.ovpn .
 
 You can revoke a client cert with a simple script.
 
+version A - with cert name only:
 ```
 docker exec -ti openvpn /bin/bash
 ./revoke-client-cert.sh user1 
 exit
 ```
 
-or you can remove the client cert with the full path of the key file too
-
+version B - with full path of cert:
 ```
 docker exec -ti openvpn /bin/bash
 ./revoke-client-cert.sh /etc/openvpn/easy-rsa/keys/user1.crt
 exit
 ```
 
-This is your choice :)
+### Config
+
+You have to enable the revoked cert checking mechanism in your `server.conf` file with this line:
+```
+crl-verify crl.pem
+```
+
+**Good to know**:
+
+If you enable this option, you have to generate and revoke a cert (example: test or anything).
+Because the clients can't connect if you don't have a valid `crl.pem` file. Empty crl.pem is not valid crl.pem file. (This is an OpenVPN bug?)
 
 ## Old client certificates
 
