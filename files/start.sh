@@ -23,16 +23,18 @@ then
   openssl dhparam -out /etc/openvpn/dh2048.pem 2048
 fi
 
+# move openvpn-vars to openvpn folder
 if [ -e /etc/openvpn-vars ]
 then
   mv /etc/openvpn-vars /etc/openvpn/easy-rsa/vars
 fi
+# move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ]
 then
   mv /etc/template-client.ovpn /etc/openvpn/easy-rsa/templates/client.conf
 fi
 
-
+# generate vpn server CA cert
 if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ]
 then
   echo "Generating server certs ..." 
@@ -53,10 +55,18 @@ ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
 ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
 
+# Radius server conf
+if [ $RADIUS_SERVER ] && [ $RADIUS_SECRET ]
+then
+  echo "$RADIUS_SERVER  $RADIUS_SECRET  1" > /etc/openvpn/pam_radius_auth.conf
+fi
+[ ! -f /etc/openvpn/pam_radius_auth.conf ] && { echo "RADIUS_SERVER  RADIUS_SECRET  1" > /etc/openvpn/pam_radius_auth.conf; }
+[ -e /etc/openvpn/pam_radius_auth.conf ] && { ln -s -f /etc/openvpn/pam_radius_auth.conf /etc/pam_radius_auth.conf; }
+[ -e /etc/pam_openvpn ] && [ ! -e /etc/openvpn/pam_openvpn ] && mv /etc/pam_openvpn /etc/openvpn/pam_openvpn
+[ -e /etc/openvpn/pam_openvpn ] && ln -s -f /etc/openvpn/pam_openvpn /etc/pam.d/openvpn
 
 # Start Openvpn
 cd /etc/openvpn && openvpn --config server.conf
-
 
 
 # END

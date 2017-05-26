@@ -49,6 +49,9 @@ docker run -tid --privileged --name=openvpn --net=host -v /srv/ovpn/config:/etc/
   - You can use the docker host's iptables (too) with `--net=host`
   - The container find the public IP address automatically, but You can define a custom IP/hostname for `remote` server address for the clients with the `-e ServerAddress=myserver.mynet.com` parameter. This remote addess use by the client config.
 
+Optional Radius connection parameter:
+  - `-e RADIUS_SERVER=127.0.0.1` and `-e RADIUS_SECRET=secret` - for radius authentication. Check my Wiki page on Github for more information.
+
 After first run you got many config files in the `/srv/ovpn/config` and `/srv/ovpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
 
   - server.conf
@@ -84,22 +87,21 @@ You can genereate cert for clients with these commands.
 You need connect to the container, generate and disconnect:
 
 ```
-docker exec -ti openvpn /bin/bash
-/opt/generate-newclient-cert.sh user1
-exit
+docker exec -ti openvpn /opt/generate-newclient-cert.sh user1
 ```
 
 This cert generator script uses the `client.conf` file as a template, and integrate the generated cert files into the client config file. So you can use only one file for the openvpn. Only the opvn config file. (example: user1-conf.ovpn ).  
 You can access the generated config (and cert files too) in the `/srv/ovpn/config/easy-rsa/keys/` folder on your Docker host.
 
 Optional:
-You can copy the keys to a readable directory:
+
+  1. You can copy the keys to a readable directory:
 ```
 cp /srv/ovpn/config/easy-rsa/keys/*.ovpn /tmp
 ```
-Notes: You must copy these files if you are in AWS environment because the *keys* folder is not readable by ubuntu user. After the copy, you can download with scp command: 
+  2. You can modify the permission of the key file:
 ```
-scp -i key.pem ubuntu@public_ip:/tmp/*.ovpn .
+chmod 755 /srv/ovpn/config/easy-rsa/keys
 ```
 
 ## Revoke a client cert
@@ -108,16 +110,12 @@ You can revoke a client cert with a simple script.
 
 version A - with cert name only:
 ```
-docker exec -ti openvpn /bin/bash
-./revoke-client-cert.sh user1 
-exit
+docker exec -ti openvpn /opt/revoke-client-cert.sh user1 
 ```
 
 version B - with full path of cert:
 ```
-docker exec -ti openvpn /bin/bash
-./revoke-client-cert.sh /etc/openvpn/easy-rsa/keys/user1.crt
-exit
+docker exec -ti openvpn /opt/revoke-client-cert.sh /etc/openvpn/easy-rsa/keys/user1.crt 
 ```
 
 ### Config
@@ -142,7 +140,16 @@ docker exec -ti openvpn /opt/list-old-keys.sh
 
 If the client cert's last day is coming, You should generate a new client key/cert/config for the client.
 
+## Additional configuration
 
+You can use extra authentication methods for this vpn container. Like:
+
+  - user and password pair from a Radius server
+  - user and google authentication key as password
+  - user and password with google authentication key as password
+
+Please check my Github Wiki page for informations of additional configuration:
+  - https://github.com/crocandr/docker-openvpn/wiki
 
 
 

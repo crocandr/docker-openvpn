@@ -1,0 +1,12 @@
+# user and password only
+#account required pam_radius_auth.so
+#auth required pam_radius_auth.so
+
+# user and google authenticator key only as password
+#account required pam_radius_auth.so
+#auth required pam_google_authenticator.so user=root secret=/etc/openvpn/vpn-users/${USER}/.google_authenticator
+
+# user and password and google authenticator key as password
+account required pam_radius_auth.so
+auth requisite pam_google_authenticator.so user=root secret=/etc/openvpn/vpn-users/${USER}/.google_authenticator forward_pass
+auth required pam_radius_auth.so use_first_pass
