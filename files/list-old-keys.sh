@@ -23,6 +23,8 @@ function cert_check {
 	 # the let command returns 0 if the key is already expired (divide by zero or with negative number or something similar)
 	 [ $DayLeft -le $BEFORE_NOTICE_DAY ] && echo "$( [ $DayLeft ] && { echo "$DayLeft day(s) left"; } || { echo "Unknown age"; } ) "$( [ -f $kf ] && { basename $kf; } )
    done
+
+   exit 0
 }
 
 # check the modification date of the vpn file
@@ -50,6 +52,8 @@ function file_check {
 		echo "$( [ $dayleft ] && { echo "$dayleft day(s) left"; } || { echo "$day day(s) old key"; } ) "$( [ -f $kf ] && { basename $kf; } )
 	  done
 	done
+
+	exit 0
 }
 
 if [ $CRT_BASED_LIST -eq 1 ]
@@ -59,3 +63,4 @@ else
   file_check
 fi
 
+exit 0
