@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 require 'net/smtp'
 require 'optparse'
 
