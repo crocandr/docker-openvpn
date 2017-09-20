@@ -15,7 +15,7 @@ OptionParser.new do |opts|
   opts.on('-t', '--mailto EMAILADDRESS', 'mail recipient') { |mailto| options[:mailto] = mailto }
   opts.on('-s', '--subject TEXT', 'subject of the mail') { |subject| options[:subject] = subject }
   opts.on('-f', '--from EMAILADDRESS', 'from address of the mail') { |from| options[:from] = from }
-  opts.on('-m', '--message TEXT', 'message' ) { |message| options[:message] = message }
+  opts.on('-m', '--message TEXT or PATH to a file', 'message' ) { |message| options[:message] = message }
 
   opts.on('-h', '--help', 'display help') { puts opts }
 
@@ -37,7 +37,11 @@ if options[:message] == nil
     puts "No message defined"
     exit
   else
-    message = options[:message]
+    if File.exist?(options[:message])
+      message = File.read(options[:message])
+    else  
+      message = options[:message]
+    end
 end
 
 #message = <<MESSAGE_END
