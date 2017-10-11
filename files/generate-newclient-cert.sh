@@ -26,6 +26,8 @@ then
   fi
 fi
 
+# if ServerPort is not defined as sys Environment variable
+[ -z $ServerPort ] && { ServerPort="1194"; }
 
 # --- SCRIPT ---
 
@@ -59,6 +61,8 @@ cp -f $ClientConfTemplate $ClientConf
 
 #  serveraddress
 sed -i 's@--ServerAddress--@'"$ServerAddress"'@g' $ClientConf
+# serverport
+sed -i 's@--ServerPort--@'"$ServerPort"'@g' $ClientConf
 
 #  insert ca
 sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf
