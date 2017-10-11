@@ -2,7 +2,7 @@
 
 ## Build
 
-Please configure your vpn key data (company, domain, email, etc...) in the `files/openvpn-vars` file before you run the build.
+Please configure your VPN key data (company, domain, email, etc...) in the `files/openvpn-vars` file before you run the build.
 
 ```
 docker build -t croc/openvpn .
@@ -11,13 +11,13 @@ docker build -t croc/openvpn .
 
 Enable UDP 1194 port for OpenVPN.
 
-You have to load tun modul into the host kernel if not loaded by default:
+You have to load tun module into the host kernel if not loaded by default:
 
 ```
 modprobe tun
 ```
 
-The ip forward is enabled in docker by default. But please check it and enable if nessesarry.
+The IP forward is enabled in docker by default. But please check it and enable if necessary.
 
 ```
 cat /proc/sys/net/ipv4/ip_forward
@@ -39,13 +39,13 @@ iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 
 ## Run
 
-You have to run the openvpn's container in `privileged` with `host network` mode.
+You have to run the OpenVPN's container in `privileged` with `host network` mode.
 
 ```
 docker run -tid --privileged --name=openvpn --net=host -v /srv/openvpn/config:/etc/openvpn croc/openvpn /opt/start.sh
 ```
 
-  - The `--privileged` parameter is very important! The openvpn container uses the tun/tap interface on your host.
+  - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
   - The container find the public IP address automatically, but You can define a custom IP/hostname and port for clients with these parameters:
     - `-e ServerAddress=myserver.mynet.com` remote server address for clients (in client config ovpn file)
@@ -81,7 +81,7 @@ push "route 172.0.1.0 255.255.255.0"
 ...
 ```
 
-If you modified the server.conf file, please restart the openvpn container:
+If you modified the server.conf file, please restart the OpenVPN container:
 
 ```
 docker restart openvpn
@@ -89,7 +89,7 @@ docker restart openvpn
 
 ## Generate client cert
 
-You can genereate cert for clients with these commands.
+You can generate cert for clients with these commands.
 
 You need connect to the container, generate and disconnect:
 
@@ -97,7 +97,7 @@ You need connect to the container, generate and disconnect:
 docker exec -ti openvpn /opt/generate-newclient-cert.sh user1
 ```
 
-This cert generator script uses the `client.conf` file as a template, and integrate the generated cert files into the client config file. So you can use only one file for the openvpn. Only the opvn config file. (example: user1-conf.ovpn ).  
+This cert generator script uses the `client.conf` file as a template, and integrate the generated cert files into the client config file. So you can use only one file for the OpenVPN. Only the opvn config file. (example: user1-conf.ovpn ).  
 You can access the generated config (and cert files too) in the `/srv/openvpn/config/easy-rsa/keys/` folder on your Docker host.
 
 Optional:
@@ -155,7 +155,7 @@ You can use extra authentication methods for this vpn container. Like:
   - user and google authentication key as password
   - user and password with google authentication key as password
 
-Please check my Github Wiki page for informations of additional configuration:
+Please check my Github Wiki page for additional information and configuration examples:
   - https://github.com/crocandr/docker-openvpn/wiki
 
 
