@@ -21,22 +21,22 @@ OptionParser.new do |opts|
 
 end.parse!
 
-#server ==  nil ? ( server = def_server )
-#subject == nil ? ( subject = def_subject )
-
 options[:server] ? ( server = options[:server] ) : ( server = def_server )
 options[:subject] ? ( subject = options[:subject] ) : ( subject = def_subject )
 options[:from] ? ( from = options[:from] ) : ( from = def_from )
+# check recipient of the mail
 if options[:mailto] == nil
     puts "No recipient defined"
     exit
   else
     mailto = options[:mailto]
 end
+# check message
 if options[:message] == nil
     puts "No message defined"
     exit
   else
+    # message is a file or a simple message?
     if File.exist?(options[:message])
       message = File.read(options[:message])
     else  
@@ -44,17 +44,10 @@ if options[:message] == nil
     end
 end
 
-#message = <<MESSAGE_END
-#From: System <noreply@sonrisa.hu> 
-#Subject: options[:subject]
-
-#options[:message]
-#
-#teszt teszt teszt
-#MESSAGE_END
-
+# concatenate mail body
 mailmsg="Subject: " + subject + "\n" + message
 
+# send message
 Net::SMTP.start(server) do |smtp|
   smtp.send_message mailmsg, from , mailto
 end
