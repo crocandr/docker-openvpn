@@ -3,9 +3,7 @@
 require 'net/smtp'
 require 'optparse'
 
-def_server = "192.168.10.254"
 def_subject = "VPN Notice"
-def_from = "noreply@mycompany.com"
 
 options = {}
 OptionParser.new do |opts|
@@ -21,20 +19,13 @@ OptionParser.new do |opts|
 
 end.parse!
 
-options[:server] ? ( server = options[:server] ) : ( server = def_server )
+options[:server] ? ( server = options[:server] ) : ( abort("No mail server defined") )
 options[:subject] ? ( subject = options[:subject] ) : ( subject = def_subject )
-options[:from] ? ( from = options[:from] ) : ( from = def_from )
-# check recipient of the mail
-if options[:mailto] == nil
-    puts "No recipient defined"
-    exit
-  else
-    mailto = options[:mailto]
-end
+options[:from] ? ( from = options[:from] ) : ( abort("No from address defined") )
+options[:mailto] ? ( mailto = options[:mailto] ) : ( abort("No recipient defined") ) 
 # check message
 if options[:message] == nil
-    puts "No message defined"
-    exit
+    abort("No message defined")
   else
     # message is a file or a simple message?
     if File.exist?(options[:message])
@@ -43,6 +34,7 @@ if options[:message] == nil
       message = options[:message]
     end
 end
+
 
 # concatenate mail body
 mailmsg="Subject: " + subject + "\n" + message
