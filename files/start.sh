@@ -29,8 +29,9 @@ then
   mv /etc/openvpn-vars /etc/openvpn/easy-rsa/vars
 fi
 # move client template conf to openvpn folder
-if [ -e /etc/template-client.ovpn ]
+if [ -e /etc/template-client.ovpn ] && [ ! -e /etc/openvpn/easy-rsa/templates/client.conf ]
 then
+  echo "Updating client template file ..."
   mv /etc/template-client.ovpn /etc/openvpn/easy-rsa/templates/client.conf
 fi
 
