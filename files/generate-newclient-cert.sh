@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # --- VARS ---
-DefaultServerAddress="vpn.mycompany.com"
 EasyRSADir="/etc/openvpn/easy-rsa"
 KeysBaseDir="$EasyRSADir/keys"
 
@@ -20,9 +19,6 @@ then
   if [ ! -z "$PUBIP" ]
   then
     ServerAddress="$PUBIP"
-  else
-    # PUBIP not exists - use DefaultServerAddress
-    ServerAddress="$DefaultServerAddress"
   fi
 fi
 
