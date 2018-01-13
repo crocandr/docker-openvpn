@@ -4,15 +4,12 @@ services:
   openvpn:
     image: croc/openvpn
 #    environment:
-#      - ServerAddress="myserver.mynet.com"
-#      - ServerPort="1194"
-#      - RADIUS_SERVER="127.0.0.1"
-#      - RADIUS_SECRET="secret"
+#      - ServerAddress=myserver.mynet.com
+#      - ServerPort=1194
+#      - RADIUS_SERVER=127.0.0.1
+#      - RADIUS_SECRET=secret
     volumes:
       - './openvpn/config:/etc/openvpn'
-    stdin_open: true
-    tty: true
-    command: /opt/start.sh
     network_mode: "host"
     privileged: true
     restart: always

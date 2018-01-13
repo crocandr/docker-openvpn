@@ -42,7 +42,7 @@ iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 You have to run the OpenVPN's container in `privileged` with `host network` mode.
 
 ```
-docker run -tid --privileged --name=openvpn --net=host -v /srv/openvpn/config:/etc/openvpn croc/openvpn /opt/start.sh
+docker run -t --privileged --name=openvpn --net=host -v /srv/openvpn/config:/etc/openvpn croc/openvpn
 ```
 
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.

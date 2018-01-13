@@ -14,3 +14,4 @@ RUN chmod +x /opt/*.sh /opt/*.rb
 COPY files/start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
+ENTRYPOINT /opt/start.sh
