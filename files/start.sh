@@ -29,7 +29,7 @@ then
   mv /etc/openvpn-vars /etc/openvpn/easy-rsa/vars
 fi
 # move client template conf to openvpn folder
-if [ -e /etc/template-client.ovpn ] && [ ! -e /etc/openvpn/easy-rsa/templates/client.conf ]
+if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
 then
   echo "Updating client template file ..."
   mv /etc/template-client.ovpn /etc/openvpn/easy-rsa/templates/client.conf
@@ -55,6 +55,11 @@ ln -f -s /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
 ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
+
+# server port update
+[ -z $ServerPort ] && { $ServerPort=1194; echo "Server port set to default"; }
+echo "Updating server.conf ... set listen port to $ServerPort ..."
+sed -i -e "s@^[pP]ort.*@port $ServerPort@g" /etc/openvpn/server.conf
 
 # Radius server conf
 if [ $RADIUS_SERVER ] && [ $RADIUS_SECRET ]
