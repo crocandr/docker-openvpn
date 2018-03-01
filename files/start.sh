@@ -17,11 +17,11 @@ then
   cp -f /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates
 fi
 
-if [ ! -e /etc/openvpn/dh2048.pem ]
-then
-  echo "Generating a cert ..."
-  openssl dhparam -out /etc/openvpn/dh2048.pem 2048
-fi
+#if [ ! -e /etc/openvpn/dh2048.pem ]
+#then
+#  echo "Generating a cert ..."
+#  openssl dhparam -out /etc/openvpn/dh2048.pem 2048
+#fi
 
 # move openvpn-vars to openvpn folder
 if [ -e /etc/openvpn-vars ]
@@ -49,7 +49,8 @@ then
   CA_EXPIRE=$SERVER_KEY_EXPIRE
   export KEY_EXPIRE
   export CA_EXPIRE
-  ../pkitool --initca vpnserver
+  ../build-dh 
+  ../pkitool --initca
   ../pkitool --server vpnserver
 fi
 
