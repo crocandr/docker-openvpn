@@ -35,6 +35,8 @@ then
   mv /etc/template-client.ovpn /etc/openvpn/easy-rsa/templates/client.conf
 fi
 
+# server key expire time
+[ -z $SERVER_KEY_EXPIRE ] && { SERVER_KEY_EXPIRE=3650; echo "Using default server key expire time: $SERVER_KEY_EXPIRE days" }
 # generate vpn server CA cert
 if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ]
 then
@@ -43,6 +45,10 @@ then
   cd /etc/openvpn/easy-rsa
   ./clean-all
   cd /etc/openvpn/easy-rsa/keys
+  KEY_EXPIRE=$SERVER_KEY_EXPIRE
+  CA_EXPIRE=$SERVER_KEY_EXPIRE
+  export KEY_EXPIRE
+  export CA_EXPIRE
   ../pkitool --initca vpnserver
   ../pkitool --server vpnserver
 fi
