@@ -57,7 +57,7 @@ ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
 ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
 
 # server port update
-[ -z $ServerPort ] && { $ServerPort=1194; echo "Server port set to default"; }
+[ -z $ServerPort ] && { ServerPort=1194; echo "Server port set to default"; }
 echo "Updating server.conf ... set listen port to $ServerPort ..."
 sed -i -e "s@^[pP]ort.*@port $ServerPort@g" /etc/openvpn/server.conf
 
