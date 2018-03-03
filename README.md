@@ -2,16 +2,16 @@
 
 ## Build
 
-Please configure your VPN key data (company, domain, email, etc...) in the `files/openvpn-vars` file before you run the build.
-
 ```
 docker build -t croc/openvpn .
 ```
+
 ## Host config
 
-Enable UDP 1194 port for OpenVPN.
+Forward an UDP port from your router to the docker host that runs this OpenVPN container.
+Default UDP port is 1194, but you can choose 21194, 51194 or any other port.
 
-You have to load tun module into the host kernel if not loaded by default:
+You have to load tun module into the docker host kernel if not loaded by default:
 
 ```
 modprobe tun
@@ -30,6 +30,9 @@ If the `ip_forward` is not `1`, please enable with this command (example):
 echo 1 > /proc/sys/net/ipv4/ip_forward
 ```
 
+You can enable this in the sysctl config file of your system, but the docker turns on this ip forward by default.
+
+The most important step:
 You **have to** enable NAT rule on the docker's host for VPN's network.  
 The VPN network is `10.8.0.0/24` by default.
 
@@ -39,22 +42,30 @@ iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 
 ## Run
 
-You have to run the OpenVPN's container in `privileged` with `host network` mode.
+You have to run the OpenVPN container in `privileged` with `host network` mode.
 
 ```
-docker run -t --privileged --name=openvpn --net=host -v /srv/openvpn/config:/etc/openvpn croc/openvpn
+docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /srv/openvpn/config:/etc/openvpn croc/openvpn
 ```
 
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
-  - The container find the public IP address automatically, but You can define a custom IP/hostname and port for clients with these parameters:
-    - `-e ServerAddress=myserver.mynet.com` remote server address for clients (in client config ovpn file)
-    - `-e ServerPort=1194` server port for clients (in client config file) - use same port in server.conf
+  - You can use these extra parameters too:
+      - `SERVER_ADDRESS=vpn.myvpn-domain.com` - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container try to get your actual public IP address by default
+      - `SERVER_PORT=51194` - the opevpn service listen port
+      - `KEY_COUNTRY=HU` - certificate key data
+      - `KEY_PROVINCE=HU` - certificate key data
+      - `KEY_CITY=Budapest` - certificate key data
+      - `KEY_ORG=My Tech Company` - certificate key data
+      - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
+      - `KEY_OU=IT NETWORK` - certificate key data
 
 or you can use docker-compose file:
 ```
 docker-compose up -d
 ```
+
+I highly recommend to You, use the docker-compose file. This docker-compose method contains the latest updates, parameters, and other recommended configurations. .... and much-much easier to start the vpn server :)
 
 Optional Radius connection parameter:
   - `-e RADIUS_SERVER=127.0.0.1` and `-e RADIUS_SECRET=secret` - for radius authentication. Check my Wiki page on Github for more information.
@@ -62,8 +73,7 @@ Optional Radius connection parameter:
 After first run you got many config files in the `/srv/openvpn/config` and `/srv/openvpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
 
   - server.conf
-  - client.conf
-  - vars
+  - client.conf (in `easy-rsa/templates` folder)
 
 
 ## OpenVPN config
@@ -157,6 +167,7 @@ You can use extra authentication methods for this vpn container. Like:
 
 Please check my Github Wiki page for additional information and configuration examples:
   - https://github.com/crocandr/docker-openvpn/wiki
+
 
 
 

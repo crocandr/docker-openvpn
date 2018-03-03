@@ -3,9 +3,15 @@ version: '3'
 services:
   openvpn:
     image: croc/openvpn
-#    environment:
-#      - ServerAddress=myserver.mynet.com
-#      - ServerPort=1194
+    environment:
+      - SERVER_ADDRESS=vpn.myvpn-domain.com
+      - SERVER_PORT=51194
+      - KEY_COUNTRY=HU
+      - KEY_PROVINCE=HU
+      - KEY_CITY=Budapest
+      - KEY_ORG=My Tech Company
+      - KEY_EMAIL=vpn@my-tech-company.com
+      - KEY_OU=IT NETWORK
 #      - RADIUS_SERVER=127.0.0.1
 #      - RADIUS_SECRET=secret
     volumes:

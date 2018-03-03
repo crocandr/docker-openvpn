@@ -7,23 +7,8 @@ KeysBaseDir="$EasyRSADir/keys"
 ClientConfTemplate="$EasyRSADir/templates/client.conf"
 ServerCAFile="/etc/openvpn/ca.crt"
 
-# if ServerAddress is not defined as sys Environment variable
-if [ -z $ServerAddress ]
-then
-  # find public IP address
-  PUBIP=$( curl -L -k http://ifconfig.co || exit 1 )
-  # failsafe PUBIP
-  [ $PUBIP ] || PUBIP=$( curl -L -k http://icanhazip.com || exit 1 )
-  [ $PUBIP ] || PUBIP=$( curl -L -k http://ident.me || exit 1 )
-  [ $PUBIP ] || PUBIP=$( curl -L -k http://eth0.me || exit 1 )
-  if [ ! -z "$PUBIP" ]
-  then
-    ServerAddress="$PUBIP"
-  fi
-fi
-
-# if ServerPort is not defined as sys Environment variable
-[ -z $ServerPort ] && { ServerPort="1194"; }
+[ -z "$SERVER_ADDRESS" ] && { echo "No server address defined."; exit 1; }
+[ -z "$SERVER_PORT" ] && { echo "No server port defined."; exit 1; }
 
 # --- SCRIPT ---
 
@@ -56,9 +41,9 @@ ClientConf=$KeysBaseDir/$keyname-conf.ovpn
 cp -f $ClientConfTemplate $ClientConf
 
 #  serveraddress
-sed -i 's@--ServerAddress--@'"$ServerAddress"'@g' $ClientConf
+sed -i 's@--ServerAddress--@'"$SERVER_ADDRESS"'@g' $ClientConf
 # serverport
-sed -i 's@--ServerPort--@'"$ServerPort"'@g' $ClientConf
+sed -i 's@--ServerPort--@'"$SERVER_PORT"'@g' $ClientConf
 
 #  insert ca
 sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf

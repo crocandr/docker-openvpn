@@ -62,12 +62,12 @@ export KEY_EXPIRE=365
 # These are the default values for fields
 # which will be placed in the certificate.
 # Don't leave any of these fields blank.
-export KEY_COUNTRY="HU"
-export KEY_PROVINCE="HU"
-export KEY_CITY="Budapest"
-export KEY_ORG="MyCompany"
-export KEY_EMAIL="vpn@mycompany.com"
-export KEY_OU="VPN"
+#export KEY_COUNTRY="HU"
+#export KEY_PROVINCE="HU"
+#export KEY_CITY="Budapest"
+#export KEY_ORG="MyCompany"
+#export KEY_EMAIL="vpn@mycompany.com"
+#export KEY_OU="VPN"
 
 # X509 Subject Field
 export KEY_NAME="server"
