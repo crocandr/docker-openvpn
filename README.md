@@ -51,8 +51,8 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
   - You can use these extra parameters too:
-      - `SERVER_ADDRESS=vpn.myvpn-domain.com` - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container try to get your actual public IP address by default
-      - `SERVER_PORT=51194` - the opevpn service listen port
+      - `SERVER_ADDRESS=vpn.myvpn-domain.com` - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container tries to get your actual public IP address by default
+      - `SERVER_PORT=51194` - the OpenVPN service listen port
       - `KEY_COUNTRY=HU` - certificate key data
       - `KEY_PROVINCE=HU` - certificate key data
       - `KEY_CITY=Budapest` - certificate key data
@@ -65,7 +65,7 @@ or you can use docker-compose file:
 docker-compose up -d
 ```
 
-I highly recommend to You, use the docker-compose file. This docker-compose method contains the latest updates, parameters, and other recommended configurations. .... and much-much easier to start the vpn server :)
+I highly recommend to You, use the docker-compose file. This docker-compose method contains the latest updates, parameters, and other recommended configurations. .... and much easier to start the VPN server :)
 
 Optional Radius connection parameter:
   - `-e RADIUS_SERVER=127.0.0.1` and `-e RADIUS_SECRET=secret` - for radius authentication. Check my Wiki page on Github for more information.
@@ -99,7 +99,7 @@ docker restart openvpn
 
 ## Generate client cert
 
-You can generate cert for clients with these commands.
+You can generate a cert for a client with these commands.
 
 You need connect to the container, generate and disconnect:
 
