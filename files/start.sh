@@ -87,6 +87,9 @@ fi
 [ -z $SERVER_PORT ] && { SERVER_PORT=1194; echo "Server port set to default: $SERVER_PORT"; }
 echo "Updating server.conf ... set listen port to $SERVER_PORT ..."
 sed -i -e "s@^[pP]ort.*@port $SERVER_PORT@g" /etc/openvpn/server.conf
+# server protocol update
+[ -z $PROTO ] && { PROTO=udp; echo "Server protocol mode set to default: $PROTO"; }
+sed -i -e "s@^[pP]roto.*@proto $PROTO@g" /etc/openvpn/server.conf
 
 # Radius server conf
 if [ $RADIUS_SERVER ] && [ $RADIUS_SECRET ]

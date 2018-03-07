@@ -6,6 +6,7 @@ services:
     environment:
       - SERVER_ADDRESS=vpn.myvpn-domain.com
       - SERVER_PORT=51194
+      - PROTO=udp
       - KEY_COUNTRY=HU
       - KEY_PROVINCE=HU
       - KEY_CITY=Budapest

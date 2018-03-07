@@ -45,6 +45,9 @@ sed -i 's@--ServerAddress--@'"$SERVER_ADDRESS"'@g' $ClientConf
 # serverport
 sed -i 's@--ServerPort--@'"$SERVER_PORT"'@g' $ClientConf
 
+# server protocol update
+sed -i -e "s@^[pP]roto.*@proto $PROTO@g" $ClientConf 
+
 #  insert ca
 sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf
 #  insert cert

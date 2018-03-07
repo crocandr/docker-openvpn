@@ -53,6 +53,7 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
   - You can use these extra parameters too:
       - `SERVER_ADDRESS=vpn.myvpn-domain.com` - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container tries to get your actual public IP address by default
       - `SERVER_PORT=51194` - the OpenVPN service listen port
+      - `PROTO=udp` - server protocol: `udp` (default) or `tcp`
       - `KEY_COUNTRY=HU` - certificate key data
       - `KEY_PROVINCE=HU` - certificate key data
       - `KEY_CITY=Budapest` - certificate key data
