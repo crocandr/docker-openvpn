@@ -7,6 +7,13 @@ KeysBaseDir="$EasyRSADir/keys"
 ClientConfTemplate="$EasyRSADir/templates/client.conf"
 ServerCAFile="/etc/openvpn/ca.crt"
 
+if [ -z "$SERVER_ADDRESS" ]
+then
+  if [ -f /tmp/server_address.txt ]
+  then
+    source /tmp/server_address.txt
+  fi
+fi
 [ -z "$SERVER_ADDRESS" ] && { echo "No server address defined."; exit 1; }
 [ -z "$SERVER_PORT" ] && { echo "No server port defined."; exit 1; }
 
