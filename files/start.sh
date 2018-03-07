@@ -79,7 +79,7 @@ then
   [ $PUBIP ] || PUBIP=$( curl -L -k http://eth0.me || exit 1 )
   if [ ! -z "$PUBIP" ]
   then
-    SERVER_ADDRESS="$PUBIP"
+    export SERVER_ADDRESS="$PUBIP"
     echo "Server address set to $PUBIP";
   fi
 fi
