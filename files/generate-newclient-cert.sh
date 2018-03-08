@@ -6,6 +6,7 @@ KeysBaseDir="$EasyRSADir/keys"
 
 ClientConfTemplate="$EasyRSADir/templates/client.conf"
 ServerCAFile="/etc/openvpn/ca.crt"
+ServerAuthFile="/etc/openvpn/ta.key"
 
 if [ -z "$SERVER_ADDRESS" ]
 then
@@ -57,6 +58,8 @@ sed -i -e "s@^[pP]roto.*@proto $PROTO@g" $ClientConf
 
 #  insert ca
 sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf
+#  insert tls-auth
+sed -i '/<tls-auth>/r '"$ServerAuthFile"'' $ClientConf
 #  insert cert
 ls -hal $KeysBaseDir/$keyname.crt
 sed -i '/<cert>/r '"$KeysBaseDir/$keyname.crt"'' $ClientConf

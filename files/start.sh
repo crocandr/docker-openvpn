@@ -37,6 +37,8 @@ then
   mv /etc/template-client.ovpn /etc/openvpn/easy-rsa/templates/client.conf
 fi
 
+# Debian openvpn preconfig
+ln -s -f /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.cnf
 # server key expire time
 [ -z $SERVER_KEY_EXPIRE ] && { SERVER_KEY_EXPIRE=3650; echo "Using default server key expire time: $SERVER_KEY_EXPIRE days"; }
 # generate vpn server CA cert
@@ -54,6 +56,7 @@ then
   ../build-dh
   ../pkitool --initca
   ../pkitool --server vpnserver
+  openvpn --genkey --secret /etc/openvpn/easy-rsa/keys/ta.key
 fi
 
 echo "Checking revoke list..."
@@ -62,6 +65,7 @@ echo "Checking revoke list..."
 echo "Symlinking configs ..."
 ln -f -s /etc/openvpn/easy-rsa/keys/dh2048.pem /etc/openvpn/dh2048.pem
 ln -f -s /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
+ln -f -s /etc/openvpn/easy-rsa/keys/ta.key /etc/openvpn/ta.key
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
 ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
 ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem

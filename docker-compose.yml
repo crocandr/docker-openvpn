@@ -4,7 +4,7 @@ services:
   openvpn:
     image: croc/openvpn
     environment:
-      - SERVER_ADDRESS=vpn.myvpn-domain.com
+#      - SERVER_ADDRESS=vpn.myvpn-domain.com
       - SERVER_PORT=51194
       - PROTO=udp
       - KEY_COUNTRY=HU
@@ -20,4 +20,3 @@ services:
     network_mode: "host"
     privileged: true
     restart: always
-
