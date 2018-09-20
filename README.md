@@ -60,6 +60,7 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
       - `KEY_ORG=My Tech Company` - certificate key data
       - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
       - `KEY_OU=IT NETWORK` - certificate key data
+      - `NAT_RULE_AUTO=true` - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: true,1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
 
 or you can use docker-compose file:
 ```

@@ -13,6 +13,7 @@ services:
       - KEY_ORG=My Tech Company
       - KEY_EMAIL=vpn@my-tech-company.com
       - KEY_OU=IT NETWORK
+      - NAT_RULE_AUTO=false
 #      - RADIUS_SERVER=127.0.0.1
 #      - RADIUS_SECRET=secret
     volumes:
