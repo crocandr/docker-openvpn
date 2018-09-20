@@ -99,6 +99,34 @@ sed -i -e "s@^[pP]roto.*@proto $PROTO@g" /etc/openvpn/server.conf
 # disable deprecated functions
 sed -i -e "s@^comp-lzo.*@;comp-lzo@g" /etc/openvpn/server.conf
 
+# NAT rules
+if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO -eq 1 ] || [ $NAT_RULE_AUTO == "true" ]
+then
+  echo "Deleting previous IPTABLES NAT rules ..."
+  iptables -D FORWARD -j ACCEPT
+  for rulenumber in $( iptables -L -t nat -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -n | xargs | rev )
+  do
+    echo "Deleting old NAT rule number $rulenumber ..."
+    #iptables -t nat -D POSTROUTING -s $NETWORK -j MASQUERADE
+    iptables -t nat -D POSTROUTING $rulenumber
+  done
+  echo "Configuring IPTABLES NAT rules ..."
+  iptables -A FORWARD -j ACCEPT
+  for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | awk '{ print $2"/"$3 }' )
+  do
+    echo "Creating NAT rule for $NETWORK ..."
+    iptables -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
+  done
+fi
+
+# client-config-dir for clients with fixed IP addresses
+FIX_IP_DIR="$( egrep -i "^client-config-dir" /etc/openvpn/server.conf | awk '{ print $2 }' )"
+if [ ! -z $FIX_IP_DIR ]
+then
+  echo "Creating client-config-dir: $FIX_IP_DIR"
+  mkdir -p "/etc/openvpn/$( echo $FIX_IP_DIR | sed s@/etc/openvpn/@@g )"
+  [ -d /etc/openvpn/$FIX_IP_DIR ] || { echo "Something wrong. Please create the client-config-dir manually"; }
+fi
 
 # Radius server conf
 if [ $RADIUS_SERVER ] && [ $RADIUS_SECRET ]
