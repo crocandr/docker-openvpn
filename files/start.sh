@@ -29,6 +29,9 @@ fi
 [ -z "$KEY_ORG" ] && { KEY_ORG="My Company"; }
 [ -z "$KEY_EMAIL" ] && { KEY_EMAIL="vpn@mycompany.com"; }
 [ -z "$KEY_OU" ] && { KEY_OU="IT"; }
+##
+[ -z "$NAT_RULE_AUTO" ] && { NAT_RULE_AUTO="no"; }
+
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
