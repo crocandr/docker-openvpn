@@ -30,6 +30,7 @@ fi
 [ -z "$KEY_EMAIL" ] && { KEY_EMAIL="vpn@mycompany.com"; }
 [ -z "$KEY_OU" ] && { KEY_OU="IT"; }
 ##
+[ -z "$VPN_NETWORK" ] && { VPN_NETWORK="10.8.0.0/24"; }
 [ -z "$NAT_RULE_AUTO" ] && { NAT_RULE_AUTO="no"; }
 
 
@@ -102,12 +103,21 @@ sed -i -e "s@^[pP]roto.*@proto $PROTO@g" /etc/openvpn/server.conf
 # disable deprecated functions
 sed -i -e "s@^comp-lzo.*@;comp-lzo@g" /etc/openvpn/server.conf
 
+# VPN Network update
+VPN_NET="$( echo $VPN_NETWORK | cut -f1 -d'/' )"
+VPN_NET_MASK="$( ipcalc $VPN_NETWORK | grep -i netmask | awk '{ print $2 }' )"
+if [ "$VPN_NET" ] && [ "$VPN_NET_MASK" ]
+then
+  echo "Updating server.conf ... set default VPN network to $VPN_NET $VPN_NET_MASK ..."
+  sed -i -r 's@^server\ [0-9][0-9].*@server '$VPN_NET' '$VPN_NET_MASK'@g' /etc/openvpn/server.conf
+fi
+
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO -eq 1 ] || [ $NAT_RULE_AUTO == "true" ]
 then
   echo "Deleting previous IPTABLES NAT rules ..."
   iptables -D FORWARD -j ACCEPT
-  for rulenumber in $( iptables -L -t nat -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -n | xargs | rev )
+  for rulenumber in $( iptables -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
   do
     echo "Deleting old NAT rule number $rulenumber ..."
     #iptables -t nat -D POSTROUTING -s $NETWORK -j MASQUERADE
@@ -120,6 +130,13 @@ then
     echo "Creating NAT rule for $NETWORK ..."
     iptables -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
   done
+fi
+
+# Default GW
+if [ $VPN_IS_DEFAULTGW == "yes" ] || [ $VPN_IS_DEFAULTGW == "y" ] || [ $VPN_IS_DEFAULTGW -eq 1 ] || [ $VPN_IS_DEFAULTGW == "true" ]
+then
+  echo "Updating server.conf ... Set VPN GW to default GW ..."
+  sed -i -r 's@.*push.*redirect-gateway@push "redirect-gateway@g' /etc/openvpn/server.conf
 fi
 
 # client-config-dir for clients with fixed IP addresses
@@ -140,6 +157,17 @@ fi
 [ -e /etc/openvpn/pam_radius_auth.conf ] && { ln -s -f /etc/openvpn/pam_radius_auth.conf /etc/pam_radius_auth.conf; }
 [ -e /etc/pam_openvpn ] && [ ! -e /etc/openvpn/pam_openvpn ] && { mv /etc/pam_openvpn /etc/openvpn/pam_openvpn; }
 [ -e /etc/openvpn/pam_openvpn ] && { ln -s -f /etc/openvpn/pam_openvpn /etc/pam.d/openvpn; }
+
+# Revoked cert check
+if [ $( grep -i crl-verify /etc/openvpn/server.conf | wc -l ) -eq 0 ]
+then
+  echo -e "\n# enable revoked cert check mechanism" >> /etc/openvpn/server.conf
+  echo ";crl-verify crl.pem" >> /etc/openvpn/server.conf
+fi
+
+# Default INFO
+echo "Check and modify the server.conf file manually for more complex setup! Like routing, DNS and etc..."
+echo "But do not forget restart the container after that!"
 
 # debug - list all sys variables
 #set

@@ -4,7 +4,7 @@ services:
   openvpn:
     image: croc/openvpn
     environment:
-#      - SERVER_ADDRESS=vpn.myvpn-domain.com
+#      - SERVER_ADDRESS=vpnsrv.mydomain.com
       - SERVER_PORT=51194
       - PROTO=udp
       - KEY_COUNTRY=HU
@@ -13,11 +13,13 @@ services:
       - KEY_ORG=My Tech Company
       - KEY_EMAIL=vpn@my-tech-company.com
       - KEY_OU=IT NETWORK
-      - NAT_RULE_AUTO=false
+#      - NAT_RULE_AUTO=yes
+#      - VPN_NETWORK=10.88.77.0/24
+#      - VPN_IS_DEFAULTGW=yes
 #      - RADIUS_SERVER=127.0.0.1
 #      - RADIUS_SECRET=secret
     volumes:
-      - './openvpn/config:/etc/openvpn'
+      - './config:/etc/openvpn'
     network_mode: "host"
     privileged: true
     restart: always

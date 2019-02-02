@@ -33,9 +33,10 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 You can enable this in the sysctl config file of your system, but the docker turns on this ip forward by default.
 
 The most important step:
-You **have to** enable NAT rule on the docker's host for VPN's network.  
+You **have to** enable NAT rule on the docker's host for VPN's network if you don't use the NAT_RULE_AUTO option for this!
 The VPN network is `10.8.0.0/24` by default.
 
+example:
 ```
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 ```
@@ -44,6 +45,10 @@ iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 
 You have to run the OpenVPN container in `privileged` with `host network` mode.
 
+Recommended way is docker-compose!
+
+### Docker run
+
 ```
 docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /srv/openvpn/config:/etc/openvpn croc/openvpn
 ```
@@ -51,28 +56,31 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
   - You can use these extra parameters too:
-      - `SERVER_ADDRESS=vpn.myvpn-domain.com` - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container tries to get your actual public IP address by default
+      - `SERVER_ADDRESS=vpn.myvpn-domain.com` (optional) - the public address of your vpn server, your clients will use this address to connect your server, if you don't define this, the container tries to get your actual public IP address by default
       - `SERVER_PORT=51194` - the OpenVPN service listen port
-      - `PROTO=udp` - server protocol: `udp` (default) or `tcp`
+      - `PROTO=udp` (optional) - server protocol: `udp` (default) or `tcp`
       - `KEY_COUNTRY=HU` - certificate key data
       - `KEY_PROVINCE=HU` - certificate key data
       - `KEY_CITY=Budapest` - certificate key data
       - `KEY_ORG=My Tech Company` - certificate key data
       - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
       - `KEY_OU=IT NETWORK` - certificate key data
-      - `NAT_RULE_AUTO=true` - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: true,1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
+      - `NAT_RULE_AUTO=yes` (optional) - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: 1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
+      - VPN_NETWORK=10.88.77.0/24 (optional) - you can modify the default VPN network. This is useful with NAT_RULE_AUTO option.
+      - VPN_IS_DEFAULTGW=yes (optional) - you can set the VPN host as default GW on every connected clients. All traffic will go through the VPN such as web browsing, dns querries, etc.
 
-or you can use docker-compose file:
+### Docker-compose
+
 ```
 docker-compose up -d
 ```
 
-I highly recommend to You, use the docker-compose file. This docker-compose method contains the latest updates, parameters, and other recommended configurations. .... and much easier to start the VPN server :)
+I highly recommend to use the docker-compose file. This docker-compose method contains the latest updates, parameters, and other recommended configurations. .... and much easier to start the VPN server :)
 
 Optional Radius connection parameter:
   - `-e RADIUS_SERVER=127.0.0.1` and `-e RADIUS_SECRET=secret` - for radius authentication. Check my Wiki page on Github for more information.
 
-After first run you got many config files in the `/srv/openvpn/config` and `/srv/openvpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
+After first run you will get many config files in the `openvpn/config` and `openvpn/config/easy-rsa` folder on your host. You have to change these config files to personalize your config.
 
   - server.conf
   - client.conf (in `easy-rsa/templates` folder)
@@ -80,10 +88,10 @@ After first run you got many config files in the `/srv/openvpn/config` and `/srv
 
 ## OpenVPN config
 
-You have to **modify** default config for your network in the openvpn's config file on your Docker host.
-You have to add routes, etc... Example:
+You can modify the default config for your network in the openvpn's config file on your Docker host.
+You can add routes, etc... Example:
 
-`vi /srv/openvpn/config/server.conf`:
+`vi config/server.conf`:
 
 ```
 ...
@@ -97,6 +105,10 @@ If you modified the server.conf file, please restart the OpenVPN container:
 
 ```
 docker restart openvpn
+```
+or
+```
+docker-compose restart
 ```
 
 ## Generate client cert
@@ -147,7 +159,7 @@ crl-verify crl.pem
 **Good to know**:
 
 If you enable this option, you have to generate and revoke a cert (example: test or anything).
-Because the clients can't connect if you don't have a valid `crl.pem` file. Empty crl.pem is not valid crl.pem file. (This is an OpenVPN bug?)
+Because the clients can't connect if you don't have a valid `crl.pem` file. Empty crl.pem is not valid crl.pem file! (This is an OpenVPN bug?)
 
 ## Old client certificates
 
