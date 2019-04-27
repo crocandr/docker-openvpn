@@ -137,6 +137,9 @@ if [ $VPN_IS_DEFAULTGW == "yes" ] || [ $VPN_IS_DEFAULTGW == "y" ] || [ $VPN_IS_D
 then
   echo "Updating server.conf ... Set VPN GW to default GW ..."
   sed -i -r 's@.*push.*redirect-gateway@push "redirect-gateway@g' /etc/openvpn/server.conf
+else
+  echo "Updating server.conf ... Disable redirect-gateway-default GW funtion ..."
+  sed -i -r 's@.*push.*redirect-gateway@#push "redirect-gateway@g' /etc/openvpn/server.conf
 fi
 
 # client-config-dir for clients with fixed IP addresses
