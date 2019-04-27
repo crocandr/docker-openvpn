@@ -34,9 +34,8 @@ fi
 [ -z "$NAT_RULE_AUTO" ] && { NAT_RULE_AUTO="no"; }
 ##
 [ -z "$IPV6_ADDRESS" ] && { IPV6_ADDRESS="disabled"; }
-[ -z "IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
-[ -z "$IPV6_NAT_RULE_AUTO" ]  && { IPV6_NAT_RULE_AUTO="no"; }
-
+[ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
+[ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
@@ -147,7 +146,7 @@ then
 fi
 
 # NAT rules
-if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO -eq 1 ] || [ $NAT_RULE_AUTO == "true" ]
+if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then
   echo "Deleting previous IPTABLES NAT rules ..."
   iptables -D FORWARD -j ACCEPT
@@ -166,7 +165,7 @@ then
   done
 fi
 # NAT rules - IPv6
-if [ $IPV6_NAT_RULE_AUTO == "yes" ] || [ $IPV6_NAT_RULE_AUTO == "y" ] || [ $IPV6_NAT_RULE_AUTO -eq 1 ] || [ $IPV6_NAT_RULE_AUTO == "true" ]
+if [ $IPV6_NAT_RULE_AUTO == "yes" ] || [ $IPV6_NAT_RULE_AUTO == "y" ] || [ $IPV6_NAT_RULE_AUTO == "1" ] || [ $IPV6_NAT_RULE_AUTO == "true" ]
 then
   echo "Deleting previous IPv6 NAT rules ..."
   ip6tables -D FORWARD -j ACCEPT
@@ -183,7 +182,7 @@ then
 fi
 
 # Default GW
-if [ $VPN_IS_DEFAULTGW == "yes" ] || [ $VPN_IS_DEFAULTGW == "y" ] || [ $VPN_IS_DEFAULTGW -eq 1 ] || [ $VPN_IS_DEFAULTGW == "true" ]
+if [ $VPN_IS_DEFAULTGW == "yes" ] || [ $VPN_IS_DEFAULTGW == "y" ] || [ $VPN_IS_DEFAULTGW == "1" ] || [ $VPN_IS_DEFAULTGW == "true" ]
 then
   echo "Updating server.conf ... Set VPN GW to default GW ..."
   sed -i -r 's@.*push.*redirect-gateway@push "redirect-gateway@g' /etc/openvpn/server.conf
@@ -196,7 +195,7 @@ if [ $( egrep -i push.*route-ipv6.*::/0 /etc/openvpn/server.conf | wc -l ) -eq 0
 then
   echo '# push "route-ipv6 ::/0" # route all ipv6 traffic through the tunnel' >>  /etc/openvpn/server.conf
 fi
-if [ $IPV6_VPN_IS_DEFAULTGW == "yes" ] || [ $IPV6_VPN_IS_DEFAULTGW == "y" ] || [ $IPV6_VPN_IS_DEFAULTGW -eq 1 ] || [ $IPV6_VPN_IS_DEFAULTGW == "true" ]
+if [ $IPV6_VPN_IS_DEFAULTGW == "yes" ] || [ $IPV6_VPN_IS_DEFAULTGW == "y" ] || [ $IPV6_VPN_IS_DEFAULTGW == "1" ] || [ $IPV6_VPN_IS_DEFAULTGW == "true" ]
 then
   echo "Updating server.conf ... Set VPN GW to default GW for IPv6 ..."
   sed -i -r 's@.*push.*route-ipv6.*::/0@push "route-ipv6 ::/0@g' /etc/openvpn/server.conf
