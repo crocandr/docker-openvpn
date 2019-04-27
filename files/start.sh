@@ -125,7 +125,7 @@ then
   done
   echo "Configuring IPTABLES NAT rules ..."
   iptables -A FORWARD -j ACCEPT
-  for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | awk '{ print $2"/"$3 }' )
+  for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | grep -iv ':' | awk '{ print $2"/"$3 }' )
   do
     echo "Creating NAT rule for $NETWORK ..."
     iptables -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
