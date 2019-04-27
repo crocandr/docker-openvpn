@@ -16,6 +16,9 @@ services:
 #      - NAT_RULE_AUTO=yes
 #      - VPN_NETWORK=10.88.77.0/24
 #      - VPN_IS_DEFAULTGW=yes
+#      - IPV6_ADDRESS=auto
+#      - IPV6_NAT_RULE_AUTO=yes
+#      - IPV6_VPN_IS_DEFAULTGW=yes
 #      - RADIUS_SERVER=127.0.0.1
 #      - RADIUS_SECRET=secret
     volumes:
