@@ -145,23 +145,33 @@ then
   sed -i -r 's@^server\ [0-9][0-9].*@server '$VPN_NET' '$VPN_NET_MASK'@g' /etc/openvpn/server.conf
 fi
 
+#if [ $( which iptables-legacy ) ]
+if [ $USE_OLD_IPTABLES == "yes" ] || [ $USE_OLD_IPTABLES == "y" ] || [ $USE_OLD_IPTABLES == "1" ]
+then
+  IPTABLESCMD="iptables-legacy"
+  echo "Using iptables-legacy command instead of default iptables command."
+else
+  IPTABLESCMD="iptables"
+  echo "Using default iptables command."
+fi 
+
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then
   echo "Deleting previous IPTABLES NAT rules ..."
-  iptables -D FORWARD -j ACCEPT
-  for rulenumber in $( iptables -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
+  $IPTABLESCMD -D FORWARD -j ACCEPT
+  for rulenumber in $( $IPTABLESCMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
   do
     echo "Deleting old NAT rule number $rulenumber ..."
     #iptables -t nat -D POSTROUTING -s $NETWORK -j MASQUERADE
-    iptables -t nat -D POSTROUTING $rulenumber
+    $IPTABLESCMD -t nat -D POSTROUTING $rulenumber
   done
   echo "Configuring IPTABLES NAT rules ..."
-  iptables -A FORWARD -j ACCEPT
+  $IPTABLESCMD -A FORWARD -j ACCEPT
   for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | grep -iv ':' | awk '{ print $2"/"$3 }' )
   do
     echo "Creating NAT rule for $NETWORK ..."
-    iptables -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
+    $IPTABLESCMD -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
   done
 fi
 # NAT rules - IPv6
