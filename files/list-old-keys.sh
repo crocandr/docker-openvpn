@@ -10,8 +10,10 @@ CRT_BASED_LIST=1
 
 DEFAULT_EXP_DAY=365
 
+# before the key expiration
 BEFORE_NOTICE_DAY=30
-AFTER_NOTICE_DAY=10
+# after the key expiration (yes, really, with minus)
+AFTER_NOTICE_DAY=-10
 
 # check the expiry date of the cert file
 function cert_check {
@@ -21,7 +23,7 @@ function cert_check {
      Today=$( date "+%s" -d "now" )
      let "DayLeft = ( $EndDate - $Today ) / 86400"
 	 # the let command returns 0 if the key is already expired (divide by zero or with negative number or something similar)
-	 [ $DayLeft -le $BEFORE_NOTICE_DAY ] && echo "$( [ $DayLeft ] && { echo "$DayLeft day(s) left"; } || { echo "Unknown age"; } ) "$( [ -f $kf ] && { basename $kf; } )
+	 [ $DayLeft -le $BEFORE_NOTICE_DAY ] && [ $DayLeft -ge $AFTER_NOTICE_DAY ] && echo "$( [ $DayLeft ] && { echo "$DayLeft day(s) left"; } || { echo "Unknown age"; } ) "$( [ -f $kf ] && { basename $kf; } )
    done
 
    exit 0
