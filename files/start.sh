@@ -33,9 +33,13 @@ fi
 [ -z "$VPN_NETWORK" ] && { VPN_NETWORK="10.8.0.0/24"; }
 [ -z "$NAT_RULE_AUTO" ] && { NAT_RULE_AUTO="no"; }
 ##
+[ -z "$VPN_IS_DEFAULTGW" ] && { VPN_IS_DEFAULTGW="no"; }
+##
 [ -z "$IPV6_ADDRESS" ] && { IPV6_ADDRESS="disabled"; }
 [ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
 [ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
+##
+[ -z "$USE_OLD_IPTABLES" ] && { USE_OLD_IPTABLES="yes"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]

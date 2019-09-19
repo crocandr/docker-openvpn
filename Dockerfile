@@ -1,4 +1,5 @@
-FROM debian:buster
+#FROM debian:buster
+FROM debian:9
 
 RUN apt-get update && apt-get install -y net-tools less curl vim tar gzip ruby openvpn easy-rsa iptables libpam-google-authenticator libpam-radius-auth freeradius-utils ipcalc sipcalc subnetcalc
 
