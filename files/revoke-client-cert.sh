@@ -16,8 +16,8 @@ then
                 certname=$1
         fi
 else
-        echo "Usage: $0 <crtfile>"
-        echo "Example: $0 $KeysBaseDir/johndon.crt"
+        echo "Usage: $0 <crtfile> OR $0 <crtfile name>"
+        echo -e "Example: \n\t $0 $KeysBaseDir/pki/issued/johndon.crt\n\t $0 johndon"
         exit 1
 fi
 
@@ -33,7 +33,9 @@ fi
 source $EasyRSADir/vars
 
 # revoke
-$EasyRSADir/revoke-full "$certname"
+#$EasyRSADir/revoke-full "$certname"
+cd $EasyRSADir
+$EasyRSADir/easyrsa revoke "$certname"
 
 # delete config file
 [ -e "$KeysBaseDir/$certname-conf.ovpn" ] && rm -f "$KeysBaseDir/$certname-conf.ovpn"

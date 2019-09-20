@@ -53,20 +53,24 @@ ln -s -f /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.c
 # server key expire time
 [ -z $SERVER_KEY_EXPIRE ] && { SERVER_KEY_EXPIRE=3650; echo "Using default server key expire time: $SERVER_KEY_EXPIRE days"; }
 # generate vpn server CA cert
-if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ]
+if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ] && [ ! -e /etc/openvpn/easy-rsa/keys/pki/issued/vpnserver.crt ]
 then
   echo "Generating server certs ..." 
   source /etc/openvpn/easy-rsa/vars
   cd /etc/openvpn/easy-rsa
-  ./clean-all
+  echo "Cleaning..."
+  rm -rf /etc/openvpn/easy-rsa/keys
+  echo "Creating server certification..."
+  mkdir -p /etc/openvpn/easy-rsa/keys
   cd /etc/openvpn/easy-rsa/keys
   KEY_EXPIRE=$SERVER_KEY_EXPIRE
   CA_EXPIRE=$SERVER_KEY_EXPIRE
   export KEY_EXPIRE
   export CA_EXPIRE
-  ../build-dh
-  ../pkitool --initca
-  ../pkitool --server vpnserver
+  /etc/openvpn/easy-rsa/easyrsa init-pki
+  /etc/openvpn/easy-rsa/easyrsa gen-dh
+  echo -e "vpnserver\n" | /etc/openvpn/easy-rsa/easyrsa build-ca nopass
+  /etc/openvpn/easy-rsa/easyrsa build-server-full vpnserver nopass
   openvpn --genkey --secret /etc/openvpn/easy-rsa/keys/ta.key
 fi
 
@@ -74,12 +78,21 @@ echo "Checking revoke list..."
 [ -e /etc/openvpn/easy-rsa/keys/crl.pem ] || touch /etc/openvpn/easy-rsa/keys/crl.pem
 
 echo "Symlinking configs ..."
-ln -f -s /etc/openvpn/easy-rsa/keys/dh2048.pem /etc/openvpn/dh2048.pem
-ln -f -s /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
-ln -f -s /etc/openvpn/easy-rsa/keys/ta.key /etc/openvpn/ta.key
-ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
-ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
-ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
+# old vpn version and config
+KEYDIR="/etc/openvpn/easy-rsa/keys"
+[ -f $KEYDIR/dh2048.pem ] && { ln -f -s $KEYDIR/dh2048.pem /etc/openvpn/dh2048.pem; }
+[ -f $KEYDIR/ca.crt ] && { ln -f -s $KEYDIR/ca.crt /etc/openvpn/ca.crt; }
+[ -f $KEYDIR/vpnserver.crt ] && { ln -f -s $KEYDIR/vpnserver.crt /etc/openvpn/server.crt; }
+[ -f $KEYDIR/vpnserver.key ] && { ln -f -s $KEYDIR/vpnserver.key /etc/openvpn/server.key; }
+# new vpn with newer easyrsa
+PKIDIR="/etc/openvpn/easy-rsa/keys/pki"
+[ -f $PKIDIR/dh.pem ] && { ln -f -s $PKIDIR/dh.pem /etc/openvpn/dh2048.pem; }
+[ -f $PKIDIR/ca.crt ] && { ln -f -s $PKIDIR/ca.crt /etc/openvpn/ca.crt; }
+[ -f $PKIDIR/issued/vpnserver.crt ] && { ln -f -s $PKIDIR/issued/vpnserver.crt /etc/openvpn/server.crt; }
+[ -f $PKIDIR/private/vpnserver.key ] && { ln -f -s $PKIDIR/private/vpnserver.key /etc/openvpn/server.key; }
+# common
+[ -f $KEYDIR/ta.key ] && { ln -f -s $KEYDIR/ta.key /etc/openvpn/ta.key; }
+[ -f $KEYDIR/crl.pem ] && { ln -f -s $KEYDIR/crl.pem /etc/openvpn/crl.pem; }
 
 # server address
 # if SERVER_ADDRESS is not defined as sys Environment variable
@@ -87,7 +100,7 @@ ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
 if [ -z $SERVER_ADDRESS ]
 then
   # find public IP address
-  PUBIP=$( curl -L -k http://ifconfig.co || exit 1 )
+  PUBIP=$( curl -s -L -k http://ifconfig.co || exit 1 )
   # failsafe PUBIP
   [ $PUBIP ] || PUBIP=$( curl -L -k http://icanhazip.com || exit 1 )
   [ $PUBIP ] || PUBIP=$( curl -L -k http://ident.me || exit 1 )
@@ -218,6 +231,8 @@ else
   sed -i -r 's@.*push.*route-ipv6.*::/0@#push "route-ipv6 ::/0@g' /etc/openvpn/server.conf
 fi
 
+# tls-auth enable in server.conf
+sed -i 's@.*tls-auth@tls-auth@g' /etc/openvpn/server.conf
 
 # client-config-dir for clients with fixed IP addresses
 FIX_IP_DIR="$( egrep -i "^client-config-dir" /etc/openvpn/server.conf | awk '{ print $2 }' )"
@@ -254,5 +269,6 @@ echo "But do not forget restart the container after that!"
 
 # Start Openvpn
 cd /etc/openvpn && openvpn --config server.conf
+#tail -f /dev/null
 
 # END

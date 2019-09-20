@@ -30,7 +30,7 @@ else
 fi
 
 # check keyname
-if [ -e "$KeysBaseDir/$keyname.crt" ]
+if [ -e "$KeysBaseDir/pki/issued/$keyname.crt" ]
 then
         echo "key file already exists: $keyname.crt"
         echo "Please give another name!"
@@ -42,7 +42,9 @@ fi
 source $EasyRSADir/vars
 
 # genkey
-$EasyRSADir/pkitool "$keyname"
+#$EasyRSADir/pkitool "$keyname"
+cd $EasyRSADir
+$EasyRSADir/easyrsa build-client-full "$keyname"
 
 # genconf
 ClientConf=$KeysBaseDir/$keyname-conf.ovpn
@@ -61,10 +63,10 @@ sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf
 #  insert tls-auth
 sed -i '/<tls-auth>/r '"$ServerAuthFile"'' $ClientConf
 #  insert cert
-ls -hal $KeysBaseDir/$keyname.crt
-sed -i '/<cert>/r '"$KeysBaseDir/$keyname.crt"'' $ClientConf
+ls -hal $KeysBaseDir/pki/issued/$keyname.crt
+sed -i '/<cert>/r '"$KeysBaseDir/pki/issued/$keyname.crt"'' $ClientConf
 #  insert key
-sed -i '/<key>/r '"$KeysBaseDir/$keyname.key"'' $ClientConf
+sed -i '/<key>/r '"$KeysBaseDir/pki/private/$keyname.key"'' $ClientConf
 
 GenDate=$( date +"%Y%m%d %T" )
 echo -e "\n\n# Generated: $GenDate" >> $KeysBaseDir/$keyname-conf.ovpn
