@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EasyRSADir="/etc/openvpn/easy-rsa"
-KeysBaseDir="$EasyRSADir/keys"
+KeysBaseDir="$EasyRSADir/pki/issued"
 
 # Expiry date:
 # 1 - look the expiration date in the cert
@@ -19,7 +19,9 @@ AFTER_NOTICE_DAY=-10
 function cert_check {
    for kf in $( find $KeysBaseDir -iname "*crt" )
    do
-     EndDate=$( date "+%s" -d "$( openssl x509 -in $kf -text | grep -i "not after" | cut -f2- -d':' )" )
+     cd $EasyRSADir
+     certname=$( basename $kf | cut -f1 -d'.' )
+     EndDate=$( date "+%s" -d "$( $EasyRSADir/easyrsa show-cert $certname | grep -i "not after" | cut -f2- -d':' )" )
      Today=$( date "+%s" -d "now" )
      let "DayLeft = ( $EndDate - $Today ) / 86400"
 	 # the let command returns 0 if the key is already expired (divide by zero or with negative number or something similar)

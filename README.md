@@ -1,5 +1,7 @@
 # Docker OpenVPN container
 
+WARNING: this Debain 10 based version with new easyrsa version is not compatible with previous version of openvpn container!
+
 ## Build
 
 ```
@@ -47,11 +49,7 @@ You have to run the OpenVPN container in `privileged` with `host network` mode.
 
 Recommended way is docker-compose!
 
-### Docker run
-
-```
-docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /srv/openvpn/config:/etc/openvpn croc/openvpn
-```
+### Parameters
 
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`

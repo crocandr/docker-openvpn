@@ -11,7 +11,6 @@ then
   echo "Generating basic configuration..."
   gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
   cp -rf /usr/share/easy-rsa/ /etc/openvpn/
-  mkdir /etc/openvpn/easy-rsa/keys
 
   mkdir /etc/openvpn/easy-rsa/templates
   cp -f /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates
@@ -39,7 +38,7 @@ fi
 [ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
 [ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
 ##
-[ -z "$USE_OLD_IPTABLES" ] && { USE_OLD_IPTABLES="yes"; }
+[ -z "$USE_IPTABLES_LEGACY" ] && { USE_IPTABLES_LEGACY="no"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
@@ -53,16 +52,14 @@ ln -s -f /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.c
 # server key expire time
 [ -z $SERVER_KEY_EXPIRE ] && { SERVER_KEY_EXPIRE=3650; echo "Using default server key expire time: $SERVER_KEY_EXPIRE days"; }
 # generate vpn server CA cert
-if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ] && [ ! -e /etc/openvpn/easy-rsa/keys/pki/issued/vpnserver.crt ]
+if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/pki/issued/vpnserver.crt ]
 then
   echo "Generating server certs ..." 
   source /etc/openvpn/easy-rsa/vars
   cd /etc/openvpn/easy-rsa
   echo "Cleaning..."
-  rm -rf /etc/openvpn/easy-rsa/keys
+  rm -rf /etc/openvpn/easy-rsa/pki
   echo "Creating server certification..."
-  mkdir -p /etc/openvpn/easy-rsa/keys
-  cd /etc/openvpn/easy-rsa/keys
   KEY_EXPIRE=$SERVER_KEY_EXPIRE
   CA_EXPIRE=$SERVER_KEY_EXPIRE
   export KEY_EXPIRE
@@ -71,28 +68,22 @@ then
   /etc/openvpn/easy-rsa/easyrsa gen-dh
   echo -e "vpnserver\n" | /etc/openvpn/easy-rsa/easyrsa build-ca nopass
   /etc/openvpn/easy-rsa/easyrsa build-server-full vpnserver nopass
-  openvpn --genkey --secret /etc/openvpn/easy-rsa/keys/ta.key
+  openvpn --genkey --secret /etc/openvpn/ta.key
 fi
 
 echo "Checking revoke list..."
-[ -e /etc/openvpn/easy-rsa/keys/crl.pem ] || touch /etc/openvpn/easy-rsa/keys/crl.pem
+[ -e /etc/openvpn/crl.pem ] || touch /etc/openvpn/crl.pem
 
 echo "Symlinking configs ..."
-# old vpn version and config
-KEYDIR="/etc/openvpn/easy-rsa/keys"
-[ -f $KEYDIR/dh2048.pem ] && { ln -f -s $KEYDIR/dh2048.pem /etc/openvpn/dh2048.pem; }
-[ -f $KEYDIR/ca.crt ] && { ln -f -s $KEYDIR/ca.crt /etc/openvpn/ca.crt; }
-[ -f $KEYDIR/vpnserver.crt ] && { ln -f -s $KEYDIR/vpnserver.crt /etc/openvpn/server.crt; }
-[ -f $KEYDIR/vpnserver.key ] && { ln -f -s $KEYDIR/vpnserver.key /etc/openvpn/server.key; }
 # new vpn with newer easyrsa
-PKIDIR="/etc/openvpn/easy-rsa/keys/pki"
+PKIDIR="/etc/openvpn/easy-rsa/pki"
 [ -f $PKIDIR/dh.pem ] && { ln -f -s $PKIDIR/dh.pem /etc/openvpn/dh2048.pem; }
 [ -f $PKIDIR/ca.crt ] && { ln -f -s $PKIDIR/ca.crt /etc/openvpn/ca.crt; }
 [ -f $PKIDIR/issued/vpnserver.crt ] && { ln -f -s $PKIDIR/issued/vpnserver.crt /etc/openvpn/server.crt; }
 [ -f $PKIDIR/private/vpnserver.key ] && { ln -f -s $PKIDIR/private/vpnserver.key /etc/openvpn/server.key; }
 # common
-[ -f $KEYDIR/ta.key ] && { ln -f -s $KEYDIR/ta.key /etc/openvpn/ta.key; }
 [ -f $KEYDIR/crl.pem ] && { ln -f -s $KEYDIR/crl.pem /etc/openvpn/crl.pem; }
+[ -d $KEYDIR/pki ] && { ln -f -s $KEYDIR/pki /etc/openvpn/easy-rsa/pki; }
 
 # server address
 # if SERVER_ADDRESS is not defined as sys Environment variable
@@ -163,7 +154,7 @@ then
 fi
 
 #if [ $( which iptables-legacy ) ]
-if [ $USE_OLD_IPTABLES == "yes" ] || [ $USE_OLD_IPTABLES == "y" ] || [ $USE_OLD_IPTABLES == "1" ]
+if [ $USE_IPTABLES_LEGACY == "yes" ] || [ $USE_IPTABLES_LEGACY == "y" ] || [ $USE_IPTABLES_LEGACY == "1" ]
 then
   IPTABLESCMD="iptables-legacy"
   echo "Using iptables-legacy command instead of default iptables command."
