@@ -44,7 +44,7 @@ source $EasyRSADir/vars
 # genkey
 #$EasyRSADir/pkitool "$keyname"
 cd $EasyRSADir
-$EasyRSADir/easyrsa build-client-full "$keyname"
+$EasyRSADir/easyrsa build-client-full "$keyname" nopass
 
 # genconf
 ClientConf=$KeysBaseDir/$keyname-conf.ovpn

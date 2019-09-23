@@ -35,7 +35,7 @@ source $EasyRSADir/vars
 # revoke
 #$EasyRSADir/revoke-full "$certname"
 cd $EasyRSADir
-$EasyRSADir/easyrsa revoke "$certname"
+echo -e "yes\n" | $EasyRSADir/easyrsa revoke "$certname"
 
 # delete config file
 [ -e "$KeysBaseDir/$certname-conf.ovpn" ] && rm -f "$KeysBaseDir/$certname-conf.ovpn"
