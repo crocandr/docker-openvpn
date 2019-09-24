@@ -251,6 +251,18 @@ then
   echo ";crl-verify crl.pem" >> /etc/openvpn/server.conf
 fi
 
+# warning for older config
+#
+if [ ! $( which easyrsa ) ] && [ ! -d /etc/openvpn/easy-rsa/pki ]
+then
+  echo -e "\n\n\n"
+  echo -e "The configuration looks like comes from an older openvpn container version."
+  echo -e "You have to use an older container version!"
+  echo -e "\n\n\n"
+  exit 1
+fi
+
+
 # Default INFO
 echo "Check and modify the server.conf file manually for more complex setup! Like routing, DNS and etc..."
 echo "But do not forget restart the container after that!"
