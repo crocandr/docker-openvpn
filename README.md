@@ -65,7 +65,7 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
       - `KEY_ORG=My Tech Company` - certificate key data
       - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
       - `KEY_OU=IT NETWORK` - certificate key data
-      - `USE_OLD_IPTABLES=yes` - if you use older Linux host (example: debian 9) that uses iptables, enable this option because the newer container uses nftables instead of iptables
+      - `IPTABLES_CMD=iptabes` - default is iptables, this command is in the container, but if you use host mode, you can override with other iptables compatible and alternative command on the docker host
       - `NAT_RULE_AUTO=yes` (optional) - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: 1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
       - `VPN_NETWORK=10.88.77.0/24` (optional) - you can modify the default VPN network. This is useful with NAT_RULE_AUTO option.
       - `VPN_IS_DEFAULTGW=yes` (optional) - you can set the VPN host as default GW on every connected clients. All traffic will go through the VPN such as web browsing, dns querries, etc.

@@ -13,7 +13,7 @@ services:
       - KEY_ORG=My Tech Company
       - KEY_EMAIL=vpn@my-tech-company.com
       - KEY_OU=IT NETWORK
-#     - USE_OLD_IPTABLES=yes     
+#     - IPTABLES_CMD=iptables    
 #      - NAT_RULE_AUTO=yes
 #      - VPN_NETWORK=10.88.77.0/24
 #      - VPN_IS_DEFAULTGW=yes
