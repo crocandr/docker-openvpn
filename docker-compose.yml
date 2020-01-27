@@ -13,10 +13,9 @@ services:
       - KEY_ORG=My Tech Company
       - KEY_EMAIL=vpn@my-tech-company.com
       - KEY_OU=IT NETWORK
-#     - IPTABLES_CMD=iptables    
-#      - NAT_RULE_AUTO=yes
-#      - VPN_NETWORK=10.88.77.0/24
-#      - VPN_IS_DEFAULTGW=yes
+      - NAT_RULE_AUTO=yes
+      - VPN_NETWORK=10.88.77.0/24
+      - VPN_IS_DEFAULTGW=yes
 #      - IPV6_ADDRESS=auto
 #      - IPV6_NAT_RULE_AUTO=yes
 #      - IPV6_VPN_IS_DEFAULTGW=yes
@@ -24,9 +23,6 @@ services:
 #      - RADIUS_SECRET=secret
     volumes:
       - './config:/etc/openvpn'
-    #network_mode: "host"
-    ports:
-      - '51194:51194/udp'
-      - '51194:51194/tcp'
+    network_mode: "host"
     privileged: true
     restart: always

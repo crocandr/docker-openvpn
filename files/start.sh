@@ -152,7 +152,7 @@ fi
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then
-  echo "Deleting previous IPTABLES NAT rules ..."
+  echo "Deleting previous NAT rules ..."
   $IPTABLES_CMD -D FORWARD -j ACCEPT
   for rulenumber in $( $IPTABLES_CMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
   do
