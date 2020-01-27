@@ -153,7 +153,6 @@ then
   sed -i -r 's@^server\ [0-9][0-9].*@server '$VPN_NET' '$VPN_NET_MASK'@g' /etc/openvpn/server.conf
 fi
 
-
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then

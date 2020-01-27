@@ -23,6 +23,9 @@ services:
 #      - RADIUS_SECRET=secret
     volumes:
       - './config:/etc/openvpn'
-    network_mode: "host"
+    #network_mode: "host"
+    ports:
+      - '51194:51194/udp'
+      - '51194:51194/tcp'
     privileged: true
     restart: unless-stopped
