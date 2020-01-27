@@ -38,7 +38,7 @@ fi
 [ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
 [ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
 ##
-[ -z "$USE_IPTABLES_LEGACY" ] && { USE_IPTABLES_LEGACY="no"; }
+[ -z "$IPTABLES_CMD" ] && { IPTABLES_CMD="iptables-nft"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
@@ -153,33 +153,23 @@ then
   sed -i -r 's@^server\ [0-9][0-9].*@server '$VPN_NET' '$VPN_NET_MASK'@g' /etc/openvpn/server.conf
 fi
 
-#if [ $( which iptables-legacy ) ]
-if [ $USE_IPTABLES_LEGACY == "yes" ] || [ $USE_IPTABLES_LEGACY == "y" ] || [ $USE_IPTABLES_LEGACY == "1" ]
-then
-  IPTABLESCMD="iptables-legacy"
-  echo "Using iptables-legacy command instead of default iptables command."
-else
-  IPTABLESCMD="iptables"
-  echo "Using default iptables command."
-fi 
 
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then
-  echo "Deleting previous IPTABLES NAT rules ..."
-  $IPTABLESCMD -D FORWARD -j ACCEPT
-  for rulenumber in $( $IPTABLESCMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
+  echo "Deleting previous NAT rules ..."
+  $IPTABLES_CMD -D FORWARD -j ACCEPT
+  for rulenumber in $( $IPTABLES_CMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
   do
     echo "Deleting old NAT rule number $rulenumber ..."
-    #iptables -t nat -D POSTROUTING -s $NETWORK -j MASQUERADE
-    $IPTABLESCMD -t nat -D POSTROUTING $rulenumber
+    $IPTABLES_CMD -t nat -D POSTROUTING $rulenumber
   done
-  echo "Configuring IPTABLES NAT rules ..."
-  $IPTABLESCMD -A FORWARD -j ACCEPT
+  echo "Configuring NAT rules ..."
+  $IPTABLES_CMD -A FORWARD -j ACCEPT
   for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | grep -iv ':' | awk '{ print $2"/"$3 }' )
   do
     echo "Creating NAT rule for $NETWORK ..."
-    $IPTABLESCMD -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
+    $IPTABLES_CMD -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
   done
 fi
 # NAT rules - IPv6
