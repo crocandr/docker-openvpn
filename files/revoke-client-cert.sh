@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # --- VARS ---
-OpenVPNConfDir="/etc/openvpn"
-EasyRSADir="$OpenVPNConfDir/easy-rsa"
-KeysBaseDir="$EasyRSADir/keys"
+EasyRSADir="/etc/openvpn/easy-rsa"
+ProfileDir="$EasyRSADir/profile"
 
 # --- SCRIPT ---
 
@@ -16,16 +15,8 @@ then
                 certname=$1
         fi
 else
-        echo "Usage: $0 <crtfile>"
-        echo "Example: $0 $KeysBaseDir/johndon.crt"
-        exit 1
-fi
-
-# check keyname
-if [ ! $( find $KeysBaseDir -iname *$certname*crt | wc -l ) -gt 0 ]
-then
-        echo "Crt file not exists: $certname"
-        echo "Please give another file name!"
+        echo "Usage: $0 <crt name>"
+        echo -e "Example:  $0 johndon"
         exit 1
 fi
 
@@ -33,7 +24,12 @@ fi
 source $EasyRSADir/vars
 
 # revoke
-$EasyRSADir/revoke-full "$certname"
+cd $EasyRSADir
+echo -e "yes\n" | $EasyRSADir/easyrsa revoke "$certname"
 
 # delete config file
-[ -e "$KeysBaseDir/$certname-conf.ovpn" ] && rm -f "$KeysBaseDir/$certname-conf.ovpn"
+[ -e "$ProfileDir/$certname-conf.ovpn" ] && rm -f "$ProfileDir/$certname-conf.ovpn"
+
+# update crl
+cd $EasyRSADir
+$EasyRSADir/easyrsa gen-crl

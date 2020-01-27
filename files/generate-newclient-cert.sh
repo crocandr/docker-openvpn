@@ -2,7 +2,7 @@
 
 # --- VARS ---
 EasyRSADir="/etc/openvpn/easy-rsa"
-KeysBaseDir="$EasyRSADir/keys"
+ProfileDir="$EasyRSADir/profile"
 
 ClientConfTemplate="$EasyRSADir/templates/client.conf"
 ServerCAFile="/etc/openvpn/ca.crt"
@@ -29,23 +29,16 @@ else
         exit 1
 fi
 
-# check keyname
-if [ -e "$KeysBaseDir/$keyname.crt" ]
-then
-        echo "key file already exists: $keyname.crt"
-        echo "Please give another name!"
-        echo "Example: $keyname-`date +%Y`"
-        exit 1
-fi
-
 # import keyvars
 source $EasyRSADir/vars
 
 # genkey
-$EasyRSADir/pkitool "$keyname"
+cd $EasyRSADir
+$EasyRSADir/easyrsa build-client-full "$keyname" nopass
 
 # genconf
-ClientConf=$KeysBaseDir/$keyname-conf.ovpn
+mkdir -p $ProfileDir
+ClientConf=$ProfileDir/$keyname-conf.ovpn
 cp -f $ClientConfTemplate $ClientConf
 
 #  serveraddress
@@ -54,24 +47,24 @@ sed -i 's@--ServerAddress--@'"$SERVER_ADDRESS"'@g' $ClientConf
 sed -i 's@--ServerPort--@'"$SERVER_PORT"'@g' $ClientConf
 
 # server protocol update
-sed -i -e "s@^[pP]roto.*@proto $PROTO@g" $ClientConf 
+sed -i -e "s@^[pP]roto.*@proto $PROTO@g" $ClientConf
 
 #  insert ca
 sed -i '/<ca>/r '"$ServerCAFile"'' $ClientConf
 #  insert tls-auth
 sed -i '/<tls-auth>/r '"$ServerAuthFile"'' $ClientConf
 #  insert cert
-ls -hal $KeysBaseDir/$keyname.crt
-sed -i '/<cert>/r '"$KeysBaseDir/$keyname.crt"'' $ClientConf
+ls -hal $EasyRSADir/pki/issued/$keyname.crt
+sed -i '/<cert>/r '"$EasyRSADir/pki/issued/$keyname.crt"'' $ClientConf
 #  insert key
-sed -i '/<key>/r '"$KeysBaseDir/$keyname.key"'' $ClientConf
+sed -i '/<key>/r '"$EasyRSADir/pki/private/$keyname.key"'' $ClientConf
 
 GenDate=$( date +"%Y%m%d %T" )
-echo -e "\n\n# Generated: $GenDate" >> $KeysBaseDir/$keyname-conf.ovpn
+echo -e "\n\n# Generated: $GenDate" >> $ProfileDir/$keyname-conf.ovpn
 
 
 # MSG
 echo ""
 echo ""
-echo "Client config file: $KeysBaseDir/$keyname-conf.ovpn"
+echo "Client config file: $ProfileDir/$keyname-conf.ovpn"
 

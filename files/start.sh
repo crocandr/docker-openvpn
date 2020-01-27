@@ -11,7 +11,6 @@ then
   echo "Generating basic configuration..."
   gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
   cp -rf /usr/share/easy-rsa/ /etc/openvpn/
-  mkdir /etc/openvpn/easy-rsa/keys
 
   mkdir /etc/openvpn/easy-rsa/templates
   cp -f /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates
@@ -39,7 +38,7 @@ fi
 [ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
 [ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
 ##
-[ -z "$IPTABLES_CMD" ] && { IPTABLES_CMD="iptables"; }
+[ -z "$IPTABLES_CMD" ] && { IPTABLES_CMD="iptables-nft"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
@@ -53,33 +52,38 @@ ln -s -f /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.c
 # server key expire time
 [ -z $SERVER_KEY_EXPIRE ] && { SERVER_KEY_EXPIRE=3650; echo "Using default server key expire time: $SERVER_KEY_EXPIRE days"; }
 # generate vpn server CA cert
-if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/keys/vpnserver.crt ]
+if [ -e /etc/openvpn/easy-rsa/vars ] && [ ! -e /etc/openvpn/easy-rsa/pki/issued/vpnserver.crt ]
 then
   echo "Generating server certs ..." 
   source /etc/openvpn/easy-rsa/vars
   cd /etc/openvpn/easy-rsa
-  ./clean-all
-  cd /etc/openvpn/easy-rsa/keys
+  echo "Cleaning..."
+  rm -rf /etc/openvpn/easy-rsa/pki
+  echo "Creating server certification..."
   KEY_EXPIRE=$SERVER_KEY_EXPIRE
   CA_EXPIRE=$SERVER_KEY_EXPIRE
   export KEY_EXPIRE
   export CA_EXPIRE
-  ../build-dh
-  ../pkitool --initca
-  ../pkitool --server vpnserver
-  openvpn --genkey --secret /etc/openvpn/easy-rsa/keys/ta.key
+  /etc/openvpn/easy-rsa/easyrsa init-pki
+  /etc/openvpn/easy-rsa/easyrsa gen-dh
+  echo -e "vpnserver\n" | /etc/openvpn/easy-rsa/easyrsa build-ca nopass
+  /etc/openvpn/easy-rsa/easyrsa build-server-full vpnserver nopass
+  openvpn --genkey --secret /etc/openvpn/ta.key
 fi
 
 echo "Checking revoke list..."
-[ -e /etc/openvpn/easy-rsa/keys/crl.pem ] || touch /etc/openvpn/easy-rsa/keys/crl.pem
+[ -e /etc/openvpn/crl.pem ] || touch /etc/openvpn/crl.pem
 
 echo "Symlinking configs ..."
-ln -f -s /etc/openvpn/easy-rsa/keys/dh2048.pem /etc/openvpn/dh2048.pem
-ln -f -s /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
-ln -f -s /etc/openvpn/easy-rsa/keys/ta.key /etc/openvpn/ta.key
-ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.crt /etc/openvpn/server.crt
-ln -f -s /etc/openvpn/easy-rsa/keys/vpnserver.key /etc/openvpn/server.key
-ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
+# new vpn with newer easyrsa
+PKIDIR="/etc/openvpn/easy-rsa/pki"
+[ -f $PKIDIR/dh.pem ] && { ln -f -s $PKIDIR/dh.pem /etc/openvpn/dh2048.pem; }
+[ -f $PKIDIR/ca.crt ] && { ln -f -s $PKIDIR/ca.crt /etc/openvpn/ca.crt; }
+[ -f $PKIDIR/issued/vpnserver.crt ] && { ln -f -s $PKIDIR/issued/vpnserver.crt /etc/openvpn/server.crt; }
+[ -f $PKIDIR/private/vpnserver.key ] && { ln -f -s $PKIDIR/private/vpnserver.key /etc/openvpn/server.key; }
+# common
+[ -f $KEYDIR/crl.pem ] && { ln -f -s $KEYDIR/crl.pem /etc/openvpn/crl.pem; }
+[ -d $KEYDIR/pki ] && { ln -f -s $KEYDIR/pki /etc/openvpn/easy-rsa/pki; }
 
 # server address
 # if SERVER_ADDRESS is not defined as sys Environment variable
@@ -87,7 +91,7 @@ ln -f -s /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
 if [ -z $SERVER_ADDRESS ]
 then
   # find public IP address
-  PUBIP=$( curl -L -k http://ifconfig.co || exit 1 )
+  PUBIP=$( curl -s -L -k http://ifconfig.co || exit 1 )
   # failsafe PUBIP
   [ $PUBIP ] || PUBIP=$( curl -L -k http://icanhazip.com || exit 1 )
   [ $PUBIP ] || PUBIP=$( curl -L -k http://ident.me || exit 1 )
@@ -152,14 +156,14 @@ fi
 # NAT rules
 if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
 then
-  echo "Deleting previous IPTABLES NAT rules ..."
+  echo "Deleting previous NAT rules ..."
   $IPTABLES_CMD -D FORWARD -j ACCEPT
   for rulenumber in $( $IPTABLES_CMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
   do
     echo "Deleting old NAT rule number $rulenumber ..."
     $IPTABLES_CMD -t nat -D POSTROUTING $rulenumber
   done
-  echo "Configuring IPTABLES NAT rules ..."
+  echo "Configuring NAT rules ..."
   $IPTABLES_CMD -A FORWARD -j ACCEPT
   for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | grep -iv ':' | awk '{ print $2"/"$3 }' )
   do
@@ -207,6 +211,8 @@ else
   sed -i -r 's@.*push.*route-ipv6.*::/0@#push "route-ipv6 ::/0@g' /etc/openvpn/server.conf
 fi
 
+# tls-auth enable in server.conf
+sed -i 's@.*tls-auth@tls-auth@g' /etc/openvpn/server.conf
 
 # client-config-dir for clients with fixed IP addresses
 FIX_IP_DIR="$( egrep -i "^client-config-dir" /etc/openvpn/server.conf | awk '{ print $2 }' )"
@@ -234,6 +240,18 @@ then
   echo ";crl-verify crl.pem" >> /etc/openvpn/server.conf
 fi
 
+# warning for older config
+#
+if [ ! $( which easyrsa ) ] && [ ! -d /etc/openvpn/easy-rsa/pki ]
+then
+  echo -e "\n\n\n"
+  echo -e "The configuration looks like comes from an older openvpn container version."
+  echo -e "You have to use an older container version!"
+  echo -e "\n\n\n"
+  exit 1
+fi
+
+
 # Default INFO
 echo "Check and modify the server.conf file manually for more complex setup! Like routing, DNS and etc..."
 echo "But do not forget restart the container after that!"
@@ -243,5 +261,6 @@ echo "But do not forget restart the container after that!"
 
 # Start Openvpn
 cd /etc/openvpn && openvpn --config server.conf
+#tail -f /dev/null
 
 # END

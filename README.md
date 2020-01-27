@@ -1,5 +1,10 @@
 # Docker OpenVPN container
 
+WARNING:
+
+  - this Debian 10 based version with new easyrsa version is not compatible with previous version of openvpn container!
+  - this container uses iptables-nft command (nftables) that is available only newer Linux OS (like Debian 10)
+
 ## Build
 
 ```
@@ -47,11 +52,7 @@ You have to run the OpenVPN container in `privileged` with `host network` mode.
 
 Recommended way is docker-compose!
 
-### Docker run
-
-```
-docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /srv/openvpn/config:/etc/openvpn croc/openvpn
-```
+### Parameters
 
   - The `--privileged` parameter is very important! The OpenVPN container uses the tun/tap interface on your host.
   - You can use the docker host's iptables (too) with `--net=host`
@@ -65,7 +66,6 @@ docker run -t --privileged --name=openvpn --net=host -e SERVER_PORT=51194 -v /sr
       - `KEY_ORG=My Tech Company` - certificate key data
       - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
       - `KEY_OU=IT NETWORK` - certificate key data
-      - `IPTABLES_CMD=iptabes` - default is iptables, this command is in the container, but if you use host mode, you can override with other iptables compatible and alternative command on the docker host
       - `NAT_RULE_AUTO=yes` (optional) - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: 1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
       - `VPN_NETWORK=10.88.77.0/24` (optional) - you can modify the default VPN network. This is useful with NAT_RULE_AUTO option.
       - `VPN_IS_DEFAULTGW=yes` (optional) - you can set the VPN host as default GW on every connected clients. All traffic will go through the VPN such as web browsing, dns querries, etc.
