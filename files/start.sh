@@ -9,7 +9,9 @@ fi
 if [ ! -e /etc/openvpn/server.conf ]
 then
   echo "Generating basic configuration..."
-  gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
+  TEMPLATE_FILE=$( find /usr/share -iname server.conf | head -n1 )
+  echo "Found template file: $TEMPLATE_FILE"
+  cp -f $TEMPLATE_FILE /etc/openvpn/server.conf
   cp -rf /usr/share/easy-rsa/ /etc/openvpn/
 
   mkdir /etc/openvpn/easy-rsa/templates
@@ -30,15 +32,11 @@ fi
 [ -z "$KEY_OU" ] && { KEY_OU="IT"; }
 ##
 [ -z "$VPN_NETWORK" ] && { VPN_NETWORK="10.8.0.0/24"; }
-[ -z "$NAT_RULE_AUTO" ] && { NAT_RULE_AUTO="no"; }
 ##
 [ -z "$VPN_IS_DEFAULTGW" ] && { VPN_IS_DEFAULTGW="no"; }
 ##
 [ -z "$IPV6_ADDRESS" ] && { IPV6_ADDRESS="disabled"; }
 [ -z "$IPV6_VPN_IS_DEFAULTGW" ] && { IPV6_VPN_IS_DEFAULTGW="no"; }
-[ -z "$IPV6_NAT_RULE_AUTO" ] && { IPV6_NAT_RULE_AUTO="no"; }
-##
-[ -z "$IPTABLES_CMD" ] && { IPTABLES_CMD="iptables-nft"; }
 
 # move client template conf to openvpn folder
 if [ -e /etc/template-client.ovpn ] && [ $( diff /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/templates/client.conf | wc -l ) -eq 0 ]
@@ -151,41 +149,6 @@ if [ "$VPN_NET" ] && [ "$VPN_NET_MASK" ]
 then
   echo "Updating server.conf ... set default VPN network to $VPN_NET $VPN_NET_MASK ..."
   sed -i -r 's@^server\ [0-9][0-9].*@server '$VPN_NET' '$VPN_NET_MASK'@g' /etc/openvpn/server.conf
-fi
-
-# NAT rules
-if [ $NAT_RULE_AUTO == "yes" ] || [ $NAT_RULE_AUTO == "y" ] || [ $NAT_RULE_AUTO == "1" ] || [ $NAT_RULE_AUTO == "true" ]
-then
-  echo "Deleting previous NAT rules ..."
-  $IPTABLES_CMD -D FORWARD -j ACCEPT
-  for rulenumber in $( $IPTABLES_CMD -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
-  do
-    echo "Deleting old NAT rule number $rulenumber ..."
-    $IPTABLES_CMD -t nat -D POSTROUTING $rulenumber
-  done
-  echo "Configuring NAT rules ..."
-  $IPTABLES_CMD -A FORWARD -j ACCEPT
-  for NETWORK in $( cat /etc/openvpn/server.conf | egrep -i "^[server|route].*[1-9].*[1-9].*[1-9].*[1-9]" | grep -iv ':' | awk '{ print $2"/"$3 }' )
-  do
-    echo "Creating NAT rule for $NETWORK ..."
-    $IPTABLES_CMD -t nat -A POSTROUTING -s $NETWORK -j MASQUERADE -m comment --comment "openvpn NAT rule"
-  done
-fi
-# NAT rules - IPv6
-if [ $IPV6_NAT_RULE_AUTO == "yes" ] || [ $IPV6_NAT_RULE_AUTO == "y" ] || [ $IPV6_NAT_RULE_AUTO == "1" ] || [ $IPV6_NAT_RULE_AUTO == "true" ]
-then
-  echo "Deleting previous IPv6 NAT rules ..."
-  ip6tables -D FORWARD -j ACCEPT
-  for rulenumber in $( ip6tables -t nat -L -n --line-numbers | grep -i "openvpn NAT rule" | awk '{ print $1 }' | sort -r -g | xargs )
-  do
-    echo "Deleting old IPv6 NAT rule number $rulenumber ..."
-    ip6tables -t nat -D POSTROUTING $rulenumber
-  done
-  echo "Configuring IPv6 NAT rules ..."
-  ip6tables -A FORWARD -j ACCEPT
-  IPV6_SUBNET=$( subnetcalc $IPV6_FULLADDRESS | grep -i Network | xargs | awk '{ print $3$4$5 }' )
-  subnetcalc $IPV6_SUBNET > /dev/null || { echo "Error, Wrong IPv6 Subnet!"; exit 1; }
-  ip6tables -t nat -A POSTROUTING -s $IPV6_SUBNET -j MASQUERADE -m comment --comment "openvpn NAT rule"
 fi
 
 # Default GW

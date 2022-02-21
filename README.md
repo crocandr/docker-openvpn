@@ -37,14 +37,30 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
 You can enable this in the sysctl config file of your system, but the docker turns on this ip forward by default.
 
-The most important step:
-You **have to** enable NAT rule on the docker's host for VPN's network if you don't use the NAT_RULE_AUTO option for this!
-The VPN network is `10.8.0.0/24` by default.
+The most important steps:
 
-example:
-```
-iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
-```
+  - NAT:
+    You **have to** enable NAT rule on the docker's host for VPN's network.
+    The VPN network is `10.8.0.0/24` by default.
+
+    example:
+    ```
+    iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
+    ```
+
+  - FORWARD rule
+    You **have to** allow package forward by default or with an allowing rule, example:
+    
+      - Everything
+        ```
+        iptables -A FORWARD -j ACCEPT
+        ```
+      - OR just the VPN range:
+        ```
+        iptables -A FORWARD -s 10.8.0.0/24 -j ACCEPT
+        iptables -A FORWARD -d 10.8.0.0/24 -j ACCEPT
+        ```
+
 
 ## Run
 
@@ -66,11 +82,9 @@ Recommended way is docker-compose!
       - `KEY_ORG=My Tech Company` - certificate key data
       - `KEY_EMAIL=vpn@my-tech-company.com` - certificate key data
       - `KEY_OU=IT NETWORK` - certificate key data
-      - `NAT_RULE_AUTO=yes` (optional) - set the IPTABLES NAT rules automatically if you run with `network_mode: "host"` option (enable: 1,y,yes ; disable: false,0,n,no). This feature is disabled by default.
-      - `VPN_NETWORK=10.88.77.0/24` (optional) - you can modify the default VPN network. This is useful with NAT_RULE_AUTO option.
+      - `VPN_NETWORK=10.88.77.0/24` (optional) - you can modify the default VPN network.
       - `VPN_IS_DEFAULTGW=yes` (optional) - you can set the VPN host as default GW on every connected clients. All traffic will go through the VPN such as web browsing, dns querries, etc.
       - `IPV6_ADDRESS=2a03:b0c0:3:d0::1991:1/112` - your IPv6 subnet for VPN clients (please use smaller subnet than your OpenVPN server have by default). You can use `auto` option instead of a host address with CIDR, but with `auto` option OpenVPN use the server default IPv6 address/network.
-      - `IPV6_NAT_RULE_AUTO=yes` (optional, but recommended) - same like IPv4 but good option if your clients do not have IPv6 addresses
       - `IPV6_VPN_IS_DEFAULTGW=yes` (optional, but recommended) - VPN host as default GW for connected clients for IPv6 network
 
 ### Docker-compose
