@@ -2,9 +2,9 @@ version: '3'
 
 services:
   openvpn:
-    image: croc/openvpn
+    image: croc/openvpn:2.5.1-debian11
     environment:
-      - SERVER_ADDRESS=3.71.80.188
+#     - SERVER_ADDRESS=<your public ip>
       - SERVER_PORT=51194
       - PROTO=udp
       - KEY_COUNTRY=HU
@@ -16,7 +16,6 @@ services:
       - VPN_NETWORK=10.88.77.0/24
       - VPN_IS_DEFAULTGW=no
 #      - IPV6_ADDRESS=auto
-#      - IPV6_NAT_RULE_AUTO=yes
 #      - IPV6_VPN_IS_DEFAULTGW=yes
 #      - RADIUS_SERVER=127.0.0.1
 #      - RADIUS_SECRET=secret
