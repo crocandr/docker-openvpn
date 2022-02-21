@@ -1,9 +1,9 @@
 # Docker OpenVPN container
 
-WARNING:
+## Test environment
 
-  - this Debian 10 based version with new easyrsa version is not compatible with previous version of openvpn container!
-  - this container uses iptables-nft command (nftables) that is available only newer Linux OS (like Debian 10)
+  - Host: Ubuntu 20.04 LTS
+  - Docker image: croc/openvpn:2.5.1-debian11
 
 ## Build
 
